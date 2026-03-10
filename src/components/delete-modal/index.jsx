@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import AppAlert from "../AppAlert";
 
 import { deleteShift } from "../../Redux/Master/shiftSlice";
+import { deleteDesignation } from "../../Redux/Master/designationSlice";
 
 // import { deleteParty } from "../../Redux/Master/partySlice";
 // import { deleteOrder } from "../../Redux/Master/OrderSlice";
@@ -118,6 +119,7 @@ const DeleteModal = ({ selectedId, type, confirmDelete }) => {
     let deleteAction;
 
     if (type === "shifts") deleteAction = deleteShift(selectedId);
+    else if (type === "designations") deleteAction = deleteDesignation(selectedId)
 
     // if (type === "party") deleteAction = deleteParty(selectedId);
     // else if (type === "order") deleteAction = deleteOrder(selectedId);

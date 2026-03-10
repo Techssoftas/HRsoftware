@@ -289,7 +289,7 @@ const Header = () => {
     master: [
       {
         name: "Designation",
-        path: "/designation/list",
+        path: "/master/designation/list",
         icon: <i className="ti ti-id-badge fs-16 me-2"></i>,
       },
       {
@@ -299,7 +299,7 @@ const Header = () => {
       },
     ],
     
-    fabrics: [
+    salary: [
       {
         name: "Week Wise",
         path: "/fabric-dashboard/",
@@ -414,7 +414,7 @@ const Header = () => {
 
       <li className="nav-item">
         <Link
-          to="#"
+          to="/employee/list"
           className="nav-link"
           onClick={() => handleMenuClick("yarn")}
           style={{
