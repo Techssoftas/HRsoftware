@@ -5,10 +5,11 @@ import { createEmployee, updateEmployee } from "../../Redux/Employe/employeeSlic
 import AppAlert from "../AppAlert"
 import { all_routes } from "../../routes/all_routes";
 import RefreshIcon from "../../components/tooltip-content/refresh";
-// import CollapesIcon from "../../components/tooltip-content/collapes";
+
 import CommonDatePicker from "../../components/date-picker/common-date-picker";
 import CommonSelect from "../../components/select/common-select";
 import { Editor } from "primereact/editor";
+import { useRef } from "react";
 
 const AddEmployee = () => {
 const dispatch = useDispatch();
@@ -16,10 +17,9 @@ const navigate = useNavigate();
   const route = all_routes;
   const [date1, setDate1] = useState(new Date());
   const [date2, setDate2] = useState(new Date());
+  const [employeename, setEmployeeName] = useState(null)
   const [selectedGender, setSelectedGender] = useState(null);
-  const [selectedNationality, setSelectedNationality] = useState(
-    null
-  );
+  
   const [selectedShift, setSelectedShift] = useState(null);
   const [selectedDepartment, setSelectedDepartment] = useState(
     null
@@ -34,24 +34,18 @@ const navigate = useNavigate();
   const [selectedState, setSelectedState] = useState(null);
   const [selectedCity, setSelectedCity] = useState(null);
   const [text, setText] = useState("");
+  const fileInputRef = useRef(null);
+  const [previewImage, setPreviewImage] = useState(null);
 
   
 
  
 
   const gender = [
-  { value: "Choose", label: "Choose" },
-  { value: "Male", label: "Male" },
-  { value: "Female", label: "Female" }];
-
-  const nationality = [
-  { value: "Choose", label: "Choose" },
-  { value: "United Kingdom", label: "United Kingdom" },
-  { value: "India", label: "India" }];
-
-  const Shift = [
-  { value: "Choose", label: "Choose" },
-  { value: "Regular", label: "Regular" }];
+ { value: "MALE", label: "Male" },
+ { value: "FEMALE", label: "Female" },
+ { value: "OTHER", label: "Other" }
+];
 
   const departments = [
   { value: "Choose", label: "Choose" },
@@ -70,10 +64,11 @@ const navigate = useNavigate();
   { value: "Select", label: "Select" },
   { value: "A+", label: "A+" },
   { value: "A-", label: "A-" },
-  { value: "B+", label: "B-" },
-  { value: "O+", label: "O-" },
-  { value: "O+", label: "O-" },
-  { value: "AB+", label: "AB-" },
+  { value: "B+", label: "B+" },
+  { value: "B-", label: "B-" },
+  { value: "O+", label: "O+" },
+  { value: "O-", label: "O-" },
+  { value: "AB+", label: "AB+" },
   { value: "AB+", label: "AB-" }];
 
   const country = [
@@ -93,11 +88,30 @@ const navigate = useNavigate();
 
 
   const [formData, setFormData] = useState({
-  first_name: "",
-  last_name: "",
-  email: "",
+  employee_name: "",
+  employee_id: "",
   contact_number: "",
-  employee_id: ""
+  gender: "",
+  dob: null,
+  joining_date: null,
+  designation: "",
+  blood_group: "",
+  education: "",
+  experience: "",
+  about: "",
+  address: "",
+  country: "",
+  state: "",
+  city: "",
+  emergency_contact: "",
+  relation: "",
+  bank_name: "",
+  account_number: "",
+  ifsc: "",
+  photo: null,
+  aadhaar_pdf: null,
+  pan_pdf: null,
+  passbook_pdf: null
 });
    const handleChange = (e) => {
   const { name, value } = e.target;
@@ -107,12 +121,88 @@ const navigate = useNavigate();
     [name]: value
   }));
 }; 
-  const handleSubmit = (e) => {
+
+const handleImageClick = () => {
+  fileInputRef.current.click();
+};
+
+const handleImageChange = (e) => {
+  const file = e.target.files[0];
+
+  if (file) {
+    setPreviewImage(URL.createObjectURL(file));
+
+    setFormData((prev) => ({
+      ...prev,
+      photo: file
+    }));
+  }
+};
+  
+  const handleFileChange = (e) => {
+  const { name, files } = e.target;
+
+  setFormData((prev) => ({
+    ...prev,
+    [name]: files[0]
+  }));
+};
+ 
+
+const formatDate = (date) => {
+  if (!date) return null;
+  if (date instanceof Date) {
+    return date.toISOString().split("T")[0];
+  }
+  return date;
+};
+
+const handleSubmit = (e) => {
   e.preventDefault();
 
-  dispatch(createEmployee(formData))
-unwrap()
-.then(() => navigate("/employee/list"));
+  const data = new FormData();
+
+  const payload = {
+    employee_name: formData.employee_name,
+    employee_id: formData.employee_id,
+    contact_number: formData.contact_number,
+    gender: formData.gender,
+
+    date_of_birth: formatDate(date1),
+    date_of_joining: formatDate(date2),
+
+    designation: selectedDesignation,
+    blood_group: selectedBloodGroup,
+
+    education_qualification: formData.education,
+    experience: formData.experience,
+
+    address: formData.address,
+    state: selectedState,
+    district: selectedCity,
+
+    emergency_contact_number: formData.emergency_contact,
+    emergency_relation: formData.relation,
+
+    bank_name: formData.bank_name,
+    account_number: formData.account_number,
+    ifsc_code: formData.ifsc
+  };
+
+  Object.keys(payload).forEach((key) => {
+    if (payload[key]) {
+      data.append(key, payload[key]);
+    }
+  });
+
+  if (formData.photo) data.append("photo", formData.photo);
+  if (formData.aadhaar_pdf) data.append("aadhaar_pdf", formData.aadhaar_pdf);
+  if (formData.pan_pdf) data.append("pan_pdf", formData.pan_pdf);
+  if (formData.passbook_pdf) data.append("passbook_pdf", formData.passbook_pdf);
+
+  dispatch(createEmployee(data))
+    .unwrap()
+    .then(() => navigate("/employee/list"));
 };
 
 
@@ -165,49 +255,71 @@ unwrap()
                   
                   <div className="accordion-body border-top">
                     <div className="new-employee-field">
+                        <label className="form-label">
+                              Employee Image
+                              <span className="text-danger ms-1">*</span>
+                            </label>
                       <div className="profile-pic-upload">
-                        <div className="profile-pic">
-                          <span>
-                            <i className="feather icon-plus-circle plus-down-add" />
-                            Profile Photo
-                          </span>
-                        </div>
-                        <div className="input-blocks mb-0">
-                          <div className="image-upload mb-0">
-                            <input type="file" />
-                            <div className="image-uploads">
-                              <h4>Change Image</h4>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                        
+  <div className="profile-pic" onClick={handleImageClick}>
+    {previewImage ? (
+      <img
+        src={previewImage}
+        alt="preview"
+        style={{
+          width: "100px",
+          height: "100px",
+          objectFit: "cover",
+          borderRadius: "6px"
+        }}
+      />
+    ) : (
+      <span>
+        <i className="feather icon-plus-circle plus-down-add" />
+        Profile Photo
+      </span>
+    )}
+  </div>
+
+  <input
+    type="file"
+    ref={fileInputRef}
+    style={{ display: "none" }}
+    accept="image/*"
+    onChange={handleImageChange}
+  />
+</div>
                       <div className="row">
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">
-                              First Name
+                              Employee Name
                               <span className="text-danger ms-1">*</span>
                             </label>
                             <input
                              type="text"
-                             name="first_name"
+                             name="employee_name"
                              className="form-control"
                              onChange={handleChange} />
                           </div>
                         </div>
+
+
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">
-                              Last Name
+                              Emp ID
                               <span className="text-danger ms-1">*</span>
                             </label>
-                            <input 
+                            <input
                             type="text"
-                            name="last_name" 
+                            name="employee_id"
                             className="form-control"
-                            onChange={handleChange} />
+                            onChange={handleChange}
+                            />
                           </div>
                         </div>
+                        
                         
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
@@ -223,20 +335,7 @@ unwrap()
                             />
                           </div>
                         </div>
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">
-                              Emp Code
-                              <span className="text-danger ms-1">*</span>
-                            </label>
-                            <input
-                            type="text"
-                            name="employee_id"
-                            className="form-control"
-                            onChange={handleChange}
-                            />
-                          </div>
-                        </div>
+                        
                         <div className="col-lg-4 col-md-6">
                           <div className="input-blocks">
                             <label className="form-label">
@@ -262,10 +361,46 @@ unwrap()
                               className="w-100"
                               options={gender}
                               value={selectedGender}
-                              onChange={(e) => setSelectedGender(e.value)}
+                              onChange={(e) => {
+                              setSelectedGender(e.value);
+                              setFormData((prev) => ({
+                              ...prev,
+                              gender: e.value
+                              }));
+                              }}
                               placeholder="Choose"
                               filter={false} />
                             
+                          </div>
+                        </div>
+
+                        <div className="col-lg-4 col-md-6">
+                          <div className="mb-3">
+                            <label className="form-label">
+                              Education
+                              <span className="text-danger ms-1">*</span>
+                            </label>
+                            <input
+                            type="text"
+                            name="education"
+                            className="form-control"
+                            onChange={handleChange}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="col-lg-4 col-md-6">
+                          <div className="mb-3">
+                            <label className="form-label">
+                              Experiance
+                              <span className="text-danger ms-1">*</span>
+                            </label>
+                            <input
+                            type="text"
+                            name="experiance"
+                            className="form-control"
+                            onChange={handleChange}
+                            />
                           </div>
                         </div>
                        
@@ -285,45 +420,8 @@ unwrap()
                             </div>
                           </div>
                         </div>
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <div className="add-newplus">
-                              <label className="form-label">
-                                Shift<span className="text-danger ms-1">*</span>
-                              </label>
-                              <Link to="#">
-                                <span>
-                                  <i className="feather icon-plus-circle plus-down-add" />
-                                  Add new
-                                </span>
-                              </Link>
-                            </div>
-                            <CommonSelect
-                              className="w-100"
-                              options={Shift}
-                              value={selectedShift}
-                              onChange={(e) => setSelectedShift(e.value)}
-                              placeholder="Choose"
-                              filter={false} />
-                            
-                          </div>
-                        </div>
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">
-                              Department
-                              <span className="text-danger ms-1">*</span>
-                            </label>
-                            <CommonSelect
-                              className="w-100"
-                              options={departments}
-                              value={selectedDepartment}
-                              onChange={(e) => setSelectedDepartment(e.value)}
-                              placeholder="Choose"
-                              filter={false} />
-                            
-                          </div>
-                        </div>
+                        
+                        
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">
@@ -446,12 +544,7 @@ unwrap()
                             
                           </div>
                         </div>
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Zipcode</label>
-                            <input type="text" className="form-control" />
-                          </div>
-                        </div>
+                        
                       </div>
                     </div>
                   </div>
@@ -502,26 +595,7 @@ unwrap()
                             <input type="text" className="form-control" />
                           </div>
                         </div>
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">
-                              Emergency Contact Number 2
-                            </label>
-                            <input type="text" className="form-control" />
-                          </div>
-                        </div>
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Relation</label>
-                            <input type="text" className="form-control" />
-                          </div>
-                        </div>
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Name</label>
-                            <input type="text" className="form-control" />
-                          </div>
-                        </div>
+                        
                       </div>
                     </div>
                   </div>
@@ -552,29 +626,61 @@ unwrap()
                   <div className="accordion-body border-top">
                     <div className="other-info">
                       <div className="row">
-                        <div className="col-lg-3 col-md-6">
+                        <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">Bank Name</label>
                             <input type="text" className="form-control" />
                           </div>
                         </div>
-                        <div className="col-lg-3 col-md-6">
+                        <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">Account Number</label>
                             <input type="text" className="form-control" />
                           </div>
                         </div>
-                        <div className="col-lg-3 col-md-6">
+                        <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">IFSC</label>
                             <input type="text" className="form-control" />
                           </div>
                         </div>
-                        <div className="col-lg-3 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Branch</label>
-                            <input type="text" className="form-control" />
-                          </div>
+                        <div className="col-lg-4 col-md-6">
+                        <div className="mb-3">
+                        <label className="form-label">Aadhaar Card</label>
+                        <input
+                        type="file"
+                        name="aadhaar_pdf"
+                        className="form-control"
+                        accept=".pdf,image/*"
+                        onChange={handleFileChange}
+                        />
+                        </div>
+                        </div>
+
+                        <div className="col-lg-4 col-md-6">
+                        <div className="mb-3">
+                        <label className="form-label">PAN Card</label>
+                        <input
+                        type="file"
+                        name="pan_pdf"
+                        className="form-control"
+                        accept=".pdf,image/*"
+                        onChange={handleFileChange}
+                        />
+                        </div>
+                        </div>
+
+                        <div className="col-lg-4 col-md-6">
+                        <div className="mb-3">
+                        <label className="form-label">Bank Passbook</label>
+                        <input
+                        type="file"
+                        name="passbook_pdf"
+                        className="form-control"
+                        accept=".pdf,image/*"
+                        onChange={handleFileChange}
+                        />
+                        </div>
                         </div>
                       </div>
                     </div>
