@@ -4,7 +4,7 @@ import AppAlert from "../AppAlert";
 
 import { deleteShift } from "../../Redux/Master/shiftSlice";
 import { deleteDesignation } from "../../Redux/Master/designationSlice";
-
+import { deleteEmployee } from "../../Redux/Employe/employeeSlice";
 // import { deleteParty } from "../../Redux/Master/partySlice";
 // import { deleteOrder } from "../../Redux/Master/OrderSlice";
 // import { deleteStyle } from "../../Redux/Master/StyleSlice";
@@ -120,7 +120,7 @@ const DeleteModal = ({ selectedId, type, confirmDelete }) => {
 
     if (type === "shifts") deleteAction = deleteShift(selectedId);
     else if (type === "designations") deleteAction = deleteDesignation(selectedId)
-
+    else if (type === "employees") deleteAction = deleteEmployee(selectedId)
     // if (type === "party") deleteAction = deleteParty(selectedId);
     // else if (type === "order") deleteAction = deleteOrder(selectedId);
     // else if (type === "style") deleteAction = deleteStyle(selectedId);

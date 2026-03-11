@@ -1,15 +1,18 @@
 import { PlusCircle } from "react-feather";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import PrimeDataTable from "../data-table";
 import { all_routes } from "../../routes/all_routes.jsx";
 import TooltipIcons from "../../components/tooltip-content/tooltipIcons.jsx";
 import RefreshIcon from "../../components/tooltip-content/refresh.jsx";
 import {getEmployees} from "../../Redux/Employe/employeeSlice.js"
-
+import DeleteModal from "../delete-modal";
+import EditEmployee from "./EditEmployee.jsx";
 const EmployeesList = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const { employees, loading = false } = useSelector((state) => state.employees);   
   const dataSource = employees?.results || [];
@@ -48,6 +51,10 @@ const columns = [
   header: "Designation",
   field: "designation_name"
 },
+{
+  header: "Joining date",
+  field: "joining_date"
+},
 
 {
   header: "District",
@@ -64,16 +71,17 @@ const columns = [
   body: (row) => (
     <div className="d-flex">
       <button
-        className="me-2 p-2 border rounded"
-        onClick={() => console.log(row)}
-      >
-        <i className="feather icon-edit"></i>
-      </button>
+  className="me-2 p-2 border rounded"
+  onClick={() => navigate(`/employee/edit/${row.id}`)}
+>
+  <i className="feather icon-edit"></i>
+</button>
 
       <button
         className="p-2 border rounded"
         data-bs-toggle="modal"
         data-bs-target="#delete-modal"
+        onClick={() => setSelectedId(row.id)}
       >
         <i className="feather icon-trash-2"></i>
       </button>
@@ -184,8 +192,12 @@ const columns = [
 
 //   }
 // ];
+
+const data = employees?.results || [];
+  const totalRecords = employees?.count || 0;
 console.log(dataSource)
   return (
+    <>
     <div className="page-wrapper">
       <div className="content">
         <div className="page-header">
@@ -420,7 +432,7 @@ console.log(dataSource)
   setRows={setRows}
   currentPage={currentPage}
   setCurrentPage={setCurrentPage}
-  totalRecords={dataSource.length}
+  totalRecords={totalRecords}
 />
             </div>
           </div>
@@ -428,51 +440,12 @@ console.log(dataSource)
 
         {/* /product list */}
       </div>
-      <div className="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3">
-        <p className="mb-0">2014-2025 © DreamsPOS. All Right Reserved</p>
-        <p>
-          Designed &amp; Developed By{" "}
-          <Link to="#" className="text-primary">
-            Dreams
-          </Link>
-        </p>
-      </div>
-      <div className="modal fade" id="delete-modal">
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="page-wrapper-new p-0">
-              <div className="content p-5 px-3 text-center">
-                <span className="rounded-circle d-inline-flex p-2 bg-danger-transparent mb-2">
-                  <i className="ti ti-trash fs-24 text-danger" />
-                </span>
-                <h4 className="fs-20 text-gray-9 fw-bold mb-2 mt-1">
-                  Delete Employee
-                </h4>
-                <p className="text-gray-6 mb-0 fs-16">
-                  Are you sure you want to delete employee?
-                </p>
-                <div className="modal-footer-btn mt-3 d-flex justify-content-center">
-                  <button
-                    type="button"
-                    className="btn me-2 btn-secondary fs-13 fw-medium p-2 px-3 shadow-none"
-                    data-bs-dismiss="modal">
-                    
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    data-bs-dismiss="modal"
-                    className="btn btn-submit fs-13 fw-medium p-2 px-3">
-                    
-                    Yes Delete
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>);
+      
+       
+    </div>
+    <DeleteModal selectedId={selectedId} type="employees" />
+    </>
+    );
 
 };
 

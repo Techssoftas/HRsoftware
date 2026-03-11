@@ -150,7 +150,7 @@ export const deleteEmployee = createAsyncThunk(
       };
 
       await axios.delete(`${baseURL}/hr/employees/${id}/`, config);
-
+     
       return id;
 
     } catch (err) {
@@ -172,6 +172,7 @@ const employeeSlice = createSlice({
     singleEmployee: null,
     employeeByEmployeeId: null,
     error: null,
+    success: false,
   },
 
   reducers: {},
@@ -210,9 +211,12 @@ const employeeSlice = createSlice({
 
       // CREATE
       .addCase(createEmployee.fulfilled, (state, action) => {
+        state.success = true;
         state.employees.results.push(action.payload);
         state.employees.count += 1;
       })
+
+      
 
 
       // UPDATE

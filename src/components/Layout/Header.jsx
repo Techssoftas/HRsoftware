@@ -323,44 +323,7 @@ const Header = () => {
       
     ],
    
-    maintenance: [
-      {
-        name: "Master",
-        icon: <i className="fa-solid fa-screwdriver-wrench fs-16 me-2"></i>,
-        children: [
-          {
-            name: "Service Category",
-            path: "/maintenance/category/",
-            icon: <i className="fa-solid fa-list-check fs-14 me-2"></i>,
-          },
-          {
-            name: "Machine",
-            path: "/maintenance/machine/",
-            icon: <i className="fa-solid fa-industry fs-14 me-2"></i>,
-          },
-        ],
-      },
-      {
-        name: "EB Maintenance",
-        path: "/maintenance/eb-maintenance/",
-        icon: <i className="fa-solid fa-wrench fs-16 me-2"></i>,
-      },
-      {
-        name: "Fuel Maintenance",
-        path: "/maintenance/fuel-maintenance/",
-        icon: <i className="fa-solid fa-gas-pump fs-16 me-2"></i>,
-      },
-      {
-        name: "General Maintenance",
-        path: "/maintenance/general-maintenance/",
-        icon: <i className="fa-solid fa-screwdriver-wrench fs-16 me-2"></i>,
-      },
-      {
-        name: "Machinery Maintenance",
-        path: "/maintenance/machinery-maintenance/",
-        icon: <i className="fa-solid fa-gears fs-16 me-2"></i>,
-      },
-    ],
+    
     
   };
 

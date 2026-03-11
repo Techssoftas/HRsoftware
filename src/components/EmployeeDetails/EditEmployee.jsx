@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector} from "react-redux";
-import { createEmployee, updateEmployee } from "../../Redux/Employe/employeeSlice";
+import { createEmployee, updateEmployee, getEmployeeById } from "../../Redux/Employe/employeeSlice";
 import { getDesignations } from "../../Redux/Master/designationSlice";
 import AppAlert from "../AppAlert"
 import { all_routes } from "../../routes/all_routes";
 import RefreshIcon from "../../components/tooltip-content/refresh";
-
+import { useParams } from "react-router-dom";
 import CommonDatePicker from "../../components/date-picker/common-date-picker";
 import CommonSelect from "../../components/select/common-select";
 import { Editor } from "primereact/editor";
@@ -14,9 +14,10 @@ import { useRef } from "react";
 
 import stateCity from "../../Data/stateCity.json"
 
-const AddEmployee = () => {
+const EditEmployee = () => {
 const dispatch = useDispatch();
 const navigate = useNavigate();
+const { id } = useParams();
   const route = all_routes;
   const [date1, setDate1] = useState(new Date());
   const [date2, setDate2] = useState(new Date());
@@ -33,7 +34,7 @@ const navigate = useNavigate();
   const [selectedBloodGroup, setSelectedBloodGroup] = useState(
     null
   );
-  
+  const { singleEmployee } = useSelector((state) => state.employees);
   const [selectedState, setSelectedState] = useState(null);
   const [selectedCity, setSelectedCity] = useState(null);
   const [cityOptions, setCityOptions] = useState([]);
@@ -48,7 +49,40 @@ const navigate = useNavigate();
     value: item.id
   })) || [];
 
-  
+  useEffect(() => {
+  dispatch(getEmployeeById(id));
+}, [dispatch, id]);
+
+useEffect(() => {
+  if (singleEmployee) {
+
+    setFormData({
+      ...formData,
+      employee_name: singleEmployee.employee_name || "",
+      employee_id: singleEmployee.employee_id || "",
+      contact_number: singleEmployee.contact_number || "",
+      gender: singleEmployee.gender || "",
+      education: singleEmployee.education_qualification || "",
+      experience: singleEmployee.experience || "",
+      address: singleEmployee.address || "",
+      bank_name: singleEmployee.bank_name || "",
+      account_number: singleEmployee.account_number || "",
+      ifsc_code: singleEmployee.ifsc_code || "",
+      bank_branch: singleEmployee.bank_branch || "",
+      aadhaar_number: singleEmployee.aadhaar_number || "",
+      pan_number: singleEmployee.pan_number || "",
+      pf_account_number: singleEmployee.pf_account_number || "",
+      esi_account_number: singleEmployee.esi_account_number || "",
+      has_esi_pf: singleEmployee.has_esi_pf ? "true" : "false"
+    });
+
+    setSelectedDesignation(singleEmployee.designation);
+    setSelectedBloodGroup(singleEmployee.blood_group);
+    setSelectedState(singleEmployee.state);
+    setSelectedCity(singleEmployee.district);
+
+  }
+}, [singleEmployee]);
 
 
   const gender = [
@@ -242,14 +276,17 @@ const handleSubmit = (e) => {
   if (formData.passbook_pdf) data.append("passbook_pdf", formData.passbook_pdf);
   if (formData.appointment_order) data.append("appointment_order", formData.appointment_order)
 
-  dispatch(createEmployee(data))
-    .unwrap()
-    .then(() => {
-      
-      setTimeout(() => {
-      navigate("/employee/list")
-    }, 1500);} );
-};
+  
+    dispatch(updateEmployee({ id, data }))
+  .unwrap()
+  .then(() => {
+
+    setTimeout(() => {
+      navigate("/employee/list");
+    }, 1500);
+
+  });
+  };
 
 
 useEffect(() => {
@@ -266,8 +303,8 @@ useEffect(() => {
           <div className="page-header">
             <div className="add-item d-flex">
               <div className="page-title">
-                <h4>Add Employee</h4>
-                <h6>Create new Employee</h6>
+                <h4>Update Employee</h4>
+                <h6>Update Employee Details </h6>
               </div>
             </div>
             <ul className="table-top-head">
@@ -906,7 +943,7 @@ useEffect(() => {
                 Cancel
               </button>
               <button type="submit" className="btn btn-primary">
-                Add Employee
+                Update Employee
               </button>
             </div>
           </form>
@@ -925,4 +962,4 @@ useEffect(() => {
 
 };
 
-export default AddEmployee;
+export default EditEmployee;

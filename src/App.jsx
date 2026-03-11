@@ -10,7 +10,7 @@ import DesignationList from "./components/Master/Designation/Designation.jsx";
 import DesignationAdd from './components/Master/Designation/AddDesignation.jsx';
 import EmployeesList from './components/EmployeeDetails/EmployeList.jsx';
 import AddEmployee from './components/EmployeeDetails/AddEmployee.jsx';
-
+import EditEmployee from './components/EmployeeDetails/EditEmployee.jsx';
 function App() {
   return (
     <Router>
@@ -26,6 +26,7 @@ function App() {
           {/* employe details */}
           <Route path='/employee/list' element={<EmployeesList/>}/>
           <Route path='/employee/add' element={<AddEmployee/>}/>
+          <Route path='/employee/edit/:id' element={<EditEmployee/>}/>
           {/* salary */}
         </Routes>
       </Layout>
