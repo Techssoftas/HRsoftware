@@ -4,6 +4,7 @@ import shiftReducer from "../Redux/Master/shiftSlice"
 import designationsReducer from "../Redux/Master/designationSlice"
 import employeeReducer from "../Redux/Employe/employeeSlice"
 import sidebarReducer from "../core/redux/sidebarSlice";
+import dailySalaryReducer from "../Redux/Salary/dailysalarySlice"
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,8 @@ export const store = configureStore({
     designations: designationsReducer,
     //employee details
     employees: employeeReducer,
+    //salary
+    dailySalary: dailySalaryReducer,
     
 
 },

@@ -75,7 +75,7 @@ const List = () => {
   ];
 
   // Safe data access
-  const data = designations?.results || [];
+  const data = [...(designations?.results || [])].sort((a, b) => b.id - a.id);
   const totalRecords = designations?.count || 0;
 
   return (

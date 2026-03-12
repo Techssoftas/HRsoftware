@@ -3,19 +3,19 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
-import PrimeDataTable from "../data-table";
-import { all_routes } from "../../routes/all_routes.jsx";
-import TooltipIcons from "../../components/tooltip-content/tooltipIcons.jsx";
-import RefreshIcon from "../../components/tooltip-content/refresh.jsx";
-import {getEmployees} from "../../Redux/Employe/employeeSlice.js"
-import DeleteModal from "../delete-modal";
-import EditEmployee from "./EditEmployee.jsx";
-const EmployeesList = () => {
+import PrimeDataTable from "../../data-table";
+import { all_routes } from "../../../routes/all_routes.jsx";
+import TooltipIcons from "../../../components/tooltip-content/tooltipIcons.jsx";
+import RefreshIcon from "../../../components/tooltip-content/refresh.jsx";
+import { getDailySalaryEntries } from "../../../Redux/Salary/dailysalarySlice.js";
+import DeleteModal from "../../delete-modal";
+// import EditEmployee from "./EditEmployee.jsx";
+const DailySalaryList = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { employees, loading = false } = useSelector((state) => state.employees);   
-  const dataSource = [...(employees?.results || [])].sort(
+  const { dailySalaryEntries, loading } = useSelector((state) => state.dailySalary);   
+  const dataSource = [...(dailySalaryEntries?.results || [])].sort(
   (a, b) => b.id - a.id
 );
 
@@ -28,7 +28,7 @@ const EmployeesList = () => {
 
   // LOAD COLORS ON MOUNT
   useEffect(() => {
-  dispatch(getEmployees({ page: currentPage, rows }));
+  dispatch(getDailySalaryEntries({ page: currentPage, rows }));
 }, [dispatch, currentPage, rows]);
 
 
@@ -41,7 +41,7 @@ const columns = [
 
 {
   header: "Employee ID",
-  field: "employee_id"
+  field: "employee_id_display"
 },
 
 {
@@ -50,22 +50,28 @@ const columns = [
 },
 
 {
-  header: "Designation",
-  field: "designation_name"
-},
-{
-  header: "Joining date",
-  field: "joining_date"
+  header: "Date",
+  field: "date"
 },
 
 {
-  header: "District",
-  field: "district"
+  header: "Shift",
+  field: "shift_value"
 },
 
 {
-  header: "Phone",
-  field: "contact_number"
+  header: "OT Hours",
+  field: "ot_hours"
+},
+
+{
+  header: "Total Hours",
+  field: "total_hours"
+},
+
+{
+  header: "Salary",
+  field: "amount_earned"
 },
 
 {
@@ -73,11 +79,11 @@ const columns = [
   body: (row) => (
     <div className="d-flex">
       <button
-  className="me-2 p-2 border rounded"
-  onClick={() => navigate(`/employee/edit/${row.id}`)}
->
-  <i className="feather icon-edit"></i>
-</button>
+        className="me-2 p-2 border rounded"
+        onClick={() => navigate(`/salary/daily/edit/${row.id}`)}
+      >
+        <i className="feather icon-edit"></i>
+      </button>
 
       <button
         className="p-2 border rounded"
@@ -92,111 +98,9 @@ const columns = [
 }
 ];
 
-//   const columns = [
-    
-//     {
-//   header: "S.No",
-//   body: (_row, { rowIndex }) => (currentPage - 1) * rows + rowIndex + 1,
-// },
-//   {
-//     title: "Employee ID",
-//     dataIndex: "employee_id",
-//     render: (text) =>
-//     <Link to={all_routes.employeedetails}>{text}</Link>,
 
-//     sorter: (a, b) => a.employee_id.length - b.employee_id.length
-//   },
-
-//   {
-//     title: "Employee",
-//     dataIndex: "employee_name",
-//     render: (text, data) =>
-//     <div className="d-flex align-items-center">
-//           <Link to={all_routes.employeedetails} className="avatar avatar-md">
-//             <img
-//           src={`assets/img/users/${data.img}`}
-//           className="img-fluid"
-//           alt="img" />
-        
-//           </Link>
-//           <div className="ms-2">
-//             <p className="text-dark mb-0">
-//               <Link to={all_routes.employeedetails}>{text}</Link>
-//             </p>
-//           </div>
-//         </div>,
-
-//     sorter: (a, b) => a.Employee.length - b.Employee.length
-//   },
-//   {
-//     title: "Designation",
-//     dataIndex: "Designation",
-//     sorter: (a, b) => a.Designation.length - b.Designation.length
-//   },
-//   {
-//     title: "District",
-//     dataIndex: "district",
-//     sorter: (a, b) => a.district.length - b.district.length
-//   },
-//   {
-//     title: "Phone",
-//     dataIndex: "Phone",
-//     sorter: (a, b) => a.Phone.length - b.Phone.length
-//   },
-//   {
-//     title: "Shift",
-//     dataIndex: "Shift",
-//     sorter: (a, b) => a.Shift.length - b.Shift.length
-//   },
-//   {
-//     title: "Status",
-//     dataIndex: "Status",
-//     render: (text) =>
-//     <span
-//       className={`badge  ${
-//       text === "Active" ? "badge-success" : "badge-danger"} d-inline-flex align-items-center badge-xs`
-//       }>
-      
-//           <i className="ti ti-point-filled me-1" />
-//           {text}
-//         </span>,
-
-//     sorter: (a, b) => a.Status.length - b.Status.length
-//   },
-
-//   {
-//     title: "",
-//     dataIndex: "actions",
-//     key: "actions",
-//     render: () =>
-//     <div className="edit-delete-action d-flex align-items-center">
-//           <Link
-//         className="me-2 d-flex align-items-center border rounded p-2"
-//         to={all_routes.employeedetails}>
-        
-//             <i data-feather="eye" className="feather-eye" />
-//           </Link>
-//           <Link
-//         className="me-2 p-2 d-flex align-items-center border rounded"
-//         to={all_routes.editemployee}>
-        
-//             <i data-feather="edit" className="feather-edit" />
-//           </Link>
-//           <Link
-//         data-bs-toggle="modal"
-//         data-bs-target="#delete-modal"
-//         className="p-2 d-flex align-items-center border rounded"
-//         to="#">
-        
-//             <i data-feather="trash-2" className="feather-trash-2" />
-//           </Link>
-//         </div>
-
-//   }
-// ];
-
-const data = employees?.results || [];
-  const totalRecords = employees?.count || 0;
+const data = dailySalaryEntries?.results || [];
+  const totalRecords = dailySalaryEntries?.count || 0;
 console.log(dataSource)
   return (
     <>
@@ -205,15 +109,15 @@ console.log(dataSource)
         <div className="page-header">
           <div className="add-item d-flex">
             <div className="page-title">
-              <h4>Employees</h4>
-              <h6>Manage your employees</h6>
+              <h4>Daily Salary</h4>
+              <h6>Manage your Daily Salary Entries</h6>
             </div>
           </div>
           <ul className="table-top-head">
             <li>
               <div className="d-flex me-2 pe-2 border-end">
                 <Link
-                  to={all_routes.employeelist}
+                  to={all_routes.dailysalarysist}
                   className="btn-list active  bg-primary me-2">
                   
                   <i data-feather="list" className="feather-list text-white" />
@@ -227,9 +131,9 @@ console.log(dataSource)
             <RefreshIcon />
             {/* <CollapesIcon /> */}
           </ul>
-          <Link to="/employee/add" className="btn btn-primary">
+          <Link to="/salary/daily/add" className="btn btn-primary">
   <i className="ti ti-circle-plus me-1"></i>
-  Create Employee
+  Add Daily Salary
 </Link>
         </div>
         <div className="row">
@@ -445,10 +349,10 @@ console.log(dataSource)
       
        
     </div>
-    <DeleteModal selectedId={selectedId} type="employees" />
+    <DeleteModal selectedId={selectedId} type="dailySalaryEntries" />
     </>
     );
 
 };
 
-export default EmployeesList;
+export default DailySalaryList;

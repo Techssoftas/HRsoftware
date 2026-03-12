@@ -71,7 +71,7 @@ const List = () => {
   ];
 
   // Safe data access
-  const data = shifts?.results || [];
+  const data = [...(shifts?.results || [])].sort((a, b) => b.id - a.id);
   const totalRecords = shifts?.count || 0;
 
   return (

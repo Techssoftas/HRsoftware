@@ -301,23 +301,23 @@ const Header = () => {
     
     salary: [
       {
-        name: "Week Wise",
-        path: "/fabric-dashboard/",
+        name: "Daily Salary",
+        path: "/salary/daily/list",
         icon: <i className="ti ti-chart-bar fs-16 me-2"></i>,
       },
       {
-        name: "Month Wise",
-        path: "/pofabric",
+        name: "Monthly Salary",
+        path: "/salary/monthly",
         icon: <i className="ti ti-shopping-bag fs-16 me-2"></i>,
       },
       {
         name: "Advance",
-        path: "/purchaselist",
+        path: "/salary/advance",
         icon: <i className="ti ti-package fs-16 me-2"></i>,
       },
       {
         name: "Paid Salary",
-        path: "/fabric/ongoinglist",
+        path: "/salary/paid",
         icon: <i className="ti ti-package fs-16 me-2"></i>,
       },
       
@@ -400,28 +400,28 @@ const Header = () => {
       </li>
 
       <li className="nav-item">
-        <Link
-          to="/fabric-dashboard/"
-          className="nav-link"
-          onClick={() => handleMenuClick("fabrics")}
-          style={{
-            color: activeMenu === "fabrics" ? "orange" : "white",
-            fontWeight: activeMenu === "fabrics" ? "bold" : "normal",
-            fontSize: "13px",
-            display: "flex",
-            backgroundColor: activeMenu === "fabrics" ? "#ffffff1a" : "",
-            padding: "5px 0px",
-            alignItems: "center",
-            gap: "4px",
-          }}
-        >
-          <i className="ti ti-layout-grid fs-16 me-1"></i>
-          <span>SALARY</span>
-          <i
-            className={`ti ti-chevron-${activeMenu === "fabrics" ? "down" : "up"} fs-12`}
-          ></i>
-        </Link>
-      </li>
+  <Link
+    to="#"
+    className="nav-link"
+    onClick={() => handleMenuClick("salary")}
+    style={{
+      color: activeMenu === "salary" ? "orange" : "white",
+      fontWeight: activeMenu === "salary" ? "bold" : "normal",
+      fontSize: "13px",
+      display: "flex",
+      backgroundColor: activeMenu === "salary" ? "#ffffff1a" : "",
+      padding: "5px 0px",
+      alignItems: "center",
+      gap: "4px",
+    }}
+  >
+    <i className="ti ti-layout-grid fs-16 me-1"></i>
+    <span>SALARY</span>
+    <i
+      className={`ti ti-chevron-${activeMenu === "salary" ? "down" : "up"} fs-12`}
+    ></i>
+  </Link>
+</li>
 
 
       <li className="nav-item">

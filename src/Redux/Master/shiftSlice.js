@@ -95,6 +95,25 @@ export const deleteShift = createAsyncThunk(
   }
 );
 
+// ---------------- GET SHIFT BY VALUE ----------------
+export const getShiftByValue = createAsyncThunk(
+  "shifts/getByValue",
+  async (shiftValue, { rejectWithValue }) => {
+    try {
+      const token = Cookies.get("token") || Cookies.get("Token");
+
+      const res = await axios.get(`${baseURL}/hr/shifts/`, {
+        params: { shift_value: shiftValue },
+        headers: { Authorization: `Token ${token}` },
+      });
+
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data || "Error fetching shift");
+    }
+  }
+);
+
 // ---------------- SLICE ----------------
 const ShiftSlice = createSlice({
   name: "shifts",
@@ -102,6 +121,7 @@ const ShiftSlice = createSlice({
   initialState: {
     loading: false,
     shifts: { count: 0, results: [] },
+    shiftByValue: null,
     error: null,
   },
 
@@ -141,12 +161,15 @@ const ShiftSlice = createSlice({
 
       // DELETE
       .addCase(deleteShift.fulfilled, (state, action) => {
-        state.shifts.results = state.shifts.results.filter(
-          (item) => item.id !== action.payload
-        );
+  state.shifts.results = state.shifts.results.filter(
+    (item) => item.id !== action.payload
+  );
+  state.shifts.count -= 1;
+})
 
-        state.shifts.count -= 1;
-      });
+.addCase(getShiftByValue.fulfilled, (state, action) => {
+  state.shiftByValue = action.payload;
+});
   },
 });
 
