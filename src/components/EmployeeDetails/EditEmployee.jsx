@@ -55,7 +55,7 @@ const { id } = useParams();
 
 useEffect(() => {
   if (singleEmployee) {
-
+    // Set form fields
     setFormData({
       ...formData,
       employee_name: singleEmployee.employee_name || "",
@@ -63,6 +63,7 @@ useEffect(() => {
       contact_number: singleEmployee.contact_number || "",
       gender: singleEmployee.gender || "",
       education: singleEmployee.education_qualification || "",
+      about: singleEmployee.about || "",
       experience: singleEmployee.experience || "",
       address: singleEmployee.address || "",
       bank_name: singleEmployee.bank_name || "",
@@ -73,14 +74,45 @@ useEffect(() => {
       pan_number: singleEmployee.pan_number || "",
       pf_account_number: singleEmployee.pf_account_number || "",
       esi_account_number: singleEmployee.esi_account_number || "",
-      has_esi_pf: singleEmployee.has_esi_pf ? "true" : "false"
+      esi_amount: singleEmployee.esi_amount || "",
+      pf_amount: singleEmployee.pf_amount || "",
+      has_esi_pf: singleEmployee.has_esi_pf ? "true" : "false",
+      emergency_contact_number: singleEmployee.emergency_contact_number || "",
+      emergency_relation: singleEmployee.emergency_relation || "",
+      emergency_relation_name: singleEmployee.emergency_relation_name || "",
     });
 
+    // Set photo preview
+    if (singleEmployee.photo) {
+      setPreviewImage(singleEmployee.photo);
+    } else {
+      setPreviewImage(null); // clear if no photo
+    }
+
+    // Set dates (convert string to Date)
+    if (singleEmployee.date_of_birth) {
+  setDate1(new Date(singleEmployee.date_of_birth + "T00:00:00"));
+}
+
+if (singleEmployee.date_of_joining) {
+  setDate2(new Date(singleEmployee.date_of_joining + "T00:00:00"));
+}
+
+    // Set designation, blood group, state, city
     setSelectedDesignation(singleEmployee.designation);
     setSelectedBloodGroup(singleEmployee.blood_group);
     setSelectedState(singleEmployee.state);
     setSelectedCity(singleEmployee.district);
 
+    // Populate city options based on the state
+    if (singleEmployee.state) {
+      const cities = stateCity[singleEmployee.state] || [];
+      const cityList = cities.map((city) => ({
+        label: city,
+        value: city,
+      }));
+      setCityOptions(cityList);
+    }
   }
 }, [singleEmployee]);
 
@@ -131,8 +163,9 @@ const states = Object.keys(stateCity).map((state) => ({
   country: "",
   state: "",
   city: "",
-  emergency_contact: "",
-  relation: "",
+  emergency_contact_number: "",
+  emergency_relation: "",
+  emergency_relation_name:"",
   bank_name: "",
   account_number: "",
   ifsc_code: "",
@@ -355,6 +388,7 @@ useEffect(() => {
     {previewImage ? (
       <img
         src={previewImage}
+        onError={() => console.log("Image failed:", previewImage)}
         alt="preview"
         style={{
           width: "100px",
@@ -402,6 +436,7 @@ useEffect(() => {
                             <input
                              type="text"
                              name="employee_name"
+                             value={formData.employee_name}
                              className="form-control"
                              onChange={handleChange} />
                           </div>
@@ -417,6 +452,7 @@ useEffect(() => {
                             <input
                             type="text"
                             name="contact_number"
+                            value={formData.contact_number}
                             className="form-control"
                             onChange={handleChange}
                             />
@@ -447,7 +483,7 @@ useEffect(() => {
                             <CommonSelect
                               className="w-100"
                               options={gender}
-                              value={selectedGender}
+                              value={formData.gender}
                               onChange={(e) => {
                               setSelectedGender(e.value);
                               setFormData((prev) => ({
@@ -470,6 +506,7 @@ useEffect(() => {
                             <input
                             type="text"
                             name="education"
+                            value={formData.education}
                             className="form-control"
                             onChange={handleChange}
                             />
@@ -485,6 +522,7 @@ useEffect(() => {
                             <input
                             type="text"
                             name="experience"
+                            value={formData.experience}
                             className="form-control"
                             onChange={handleChange}
                             />
@@ -549,7 +587,7 @@ useEffect(() => {
                           <label>About</label>
                           <div id="summernote">
                             <Editor
-                              value={text}
+                              value={formData.about}
                               onTextChange={(e) => setText(e.htmlValue)}
                               style={{ height: "200px" }} />
                             
@@ -593,6 +631,7 @@ useEffect(() => {
                             <input 
                             type="text"
                             name="address"
+                            value={formData.address}
                             className="form-control"
                             onChange={handleChange}
                              />
@@ -675,6 +714,7 @@ useEffect(() => {
                             <input 
                             type="text"
                             className="form-control"
+                            value={formData.emergency_contact_number}
                             name="emergency_contact_number"
                             onChange={handleChange}
                              />
@@ -683,13 +723,13 @@ useEffect(() => {
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">Relation</label>
-                            <input type="text" name="emergency_relation" className="form-control" onChange={handleChange} />
+                            <input type="text" name="emergency_relation" value={formData.emergency_relation} className="form-control" onChange={handleChange} />
                           </div>
                         </div>
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">Name</label>
-                            <input type="text" className="form-control" name="emergency_relation_name" onChange={handleChange} />
+                            <input type="text" className="form-control" value={formData.emergency_relation_name} name="emergency_relation_name" onChange={handleChange} />
                           </div>
                         </div>
                         
@@ -765,6 +805,7 @@ useEffect(() => {
 <input
  type="text"
  name="pf_account_number"
+ value={formData.pf_account_number}
  className="form-control"
  onChange={handleChange}
 />
@@ -775,6 +816,7 @@ useEffect(() => {
 <input
  type="text"
  name="esi_account_number"
+ value={formData.esi_account_number}
  className="form-control"
  onChange={handleChange}
 />
@@ -789,6 +831,7 @@ useEffect(() => {
                             <input
                             type="text"
                             name="esi_amount"
+                            value={formData.esi_amount}
                             className="form-control"
                             onChange={handleChange}
                             />
@@ -805,6 +848,7 @@ useEffect(() => {
                             <input
                             type="text"
                             name="pf_amount"
+                            value={formData.pf_amount}
                             className="form-control"
                             onChange={handleChange}
                             />
@@ -847,37 +891,37 @@ useEffect(() => {
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">Bank Name</label>
-                            <input type="text" name="bank_name" onChange={handleChange} className="form-control" />
+                            <input type="text" name="bank_name" value={formData.bank_name} onChange={handleChange} className="form-control" />
                           </div>
                         </div>
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">Account Number</label>
-                            <input type="text" name="account_number" onChange={handleChange} className="form-control" />
+                            <input type="text" name="account_number" value={formData.account_number} onChange={handleChange} className="form-control" />
                           </div>
                         </div>
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">IFSC</label>
-                            <input type="text" name="ifsc_code" onChange={handleChange} className="form-control" />
+                            <input type="text" name="ifsc_code" value={formData.ifsc_code} onChange={handleChange} className="form-control" />
                           </div>
                         </div>
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">Branch</label>
-                            <input type="text" name="bank_branch" onChange={handleChange} className="form-control" />
+                            <input type="text" name="bank_branch" value={formData.bank_branch} onChange={handleChange} className="form-control" />
                           </div>
                         </div>
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">Aadhar Number</label>
-                            <input type="text" name="aadhaar_number" onChange={handleChange} className="form-control" />
+                            <input type="text" name="aadhaar_number" value={formData.aadhaar_number} onChange={handleChange} className="form-control" />
                           </div>
                         </div>
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">pan Number</label>
-                            <input type="text" name="pan_number" onChange={handleChange} className="form-control" />
+                            <input type="text" name="pan_number" value={formData.pan_number} onChange={handleChange} className="form-control" />
                           </div>
                         </div>
                         <div className="col-lg-4 col-md-6">
@@ -890,6 +934,7 @@ useEffect(() => {
                         accept=".pdf,image/*"
                         onChange={handleFileChange}
                         />
+                        
                         </div>
                         </div>
 
@@ -930,6 +975,7 @@ useEffect(() => {
                         />
                         </div>
                         </div>
+                       
                       </div>
                     </div>
                   </div>
