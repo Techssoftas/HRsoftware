@@ -13,15 +13,11 @@ import AddEmployee from './components/EmployeeDetails/AddEmployee.jsx';
 import EditEmployee from './components/EmployeeDetails/EditEmployee.jsx';
 import DailySalaryList from './components/Salary/Dailysalary/DailysalaryList.jsx';
 import AddDailysalary from './components/Salary/Dailysalary/AddDailysalary.jsx';
-<<<<<<< HEAD
 import EditDailysalary from './components/Salary/Dailysalary/EditDailysalary.jsx';
+import MonthlySalaryList from './components/Salary/Monthlysalary/MonthlysalaryList.jsx';
 import AdvanceSalaryList from './components/Salary/Advancesalary/AdvancesalaryList.jsx';
 import AddAdvancesalary from './components/Salary/Advancesalary/AddAdvancesalary.jsx';
-=======
-import MonthlySalaryList from './components/Salary/Monthlysalary/MonthlysalaryList.jsx';
-import EditMonthlySalary from './components/Salary/Monthlysalary/EditMonthlySalary.jsx';
-import PaidSalaryList from './components/Salary/Monthlysalary/PaidSalaryList.jsx';
->>>>>>> origin/guru
+import EditAdvancesalary from './components/Salary/Advancesalary/EditAdvancesalary.jsx';
 function App() {
   return (
     <Router>
@@ -41,19 +37,13 @@ function App() {
           {/* dailysalary */}
           <Route path='/salary/daily/list' element={<DailySalaryList/>}/>
           <Route path='/salary/daily/add' element={<AddDailysalary/>}/>
-<<<<<<< HEAD
           <Route path='/salary/daily/edit/:id' element={<EditDailysalary/>}/>
+          {/* monthlysalary */}
+          <Route path='/salary/monthly/list' element={<MonthlySalaryList/>}/>
           {/* advancesalary */}
           <Route path='/salary/advance/list' element={<AdvanceSalaryList/>}/>
           <Route path='/salary/advance/add' element={<AddAdvancesalary/>}/>
-
-=======
-          <Route path='/salary/monthly' element={<MonthlySalaryList/>}/>
-          <Route path='/salary/monthly/list' element={<MonthlySalaryList/>}/>
-          <Route path='/salary/monthly/edit/:id' element={<EditMonthlySalary/>}/>
-          <Route path='/salary/paid' element={<PaidSalaryList/>}/>
-          <Route path='/salary/paid/list' element={<PaidSalaryList/>}/>
->>>>>>> origin/guru
+          <Route path='/salary/advance/edit/:id' element={<EditAdvancesalary/>}/>
         </Routes>
       </Layout>
     </Router>

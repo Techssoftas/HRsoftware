@@ -307,7 +307,7 @@ const Header = () => {
       },
       {
         name: "Monthly Salary",
-        path: "/salary/monthly",
+        path: "/salary/monthly/list",
         icon: <i className="ti ti-shopping-bag fs-16 me-2"></i>,
       },
       {

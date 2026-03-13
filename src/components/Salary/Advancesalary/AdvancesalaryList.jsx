@@ -9,7 +9,7 @@ import TooltipIcons from "../../../components/tooltip-content/tooltipIcons.jsx";
 import RefreshIcon from "../../../components/tooltip-content/refresh.jsx";
 import {getAdvanceSalaries} from "../../../Redux/Salary/advancesalarySlice"
 import DeleteModal from "../../delete-modal";
-// import EditEmployee from "./EditEmployee.jsx";
+import EditAdvancesalary from "./EditAdvancesalary.jsx";
 const AdvanceSalaryList = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -64,7 +64,7 @@ const columns = [
     <div className="d-flex">
       <button
         className="me-2 p-2 border rounded"
-        onClick={() => navigate(`/salary/daily/edit/${row.id}`)}
+        onClick={() => navigate(`/salary/advance/edit/${row.id}`)}
       >
         <i className="feather icon-edit"></i>
       </button>
