@@ -13,6 +13,8 @@ import AddEmployee from './components/EmployeeDetails/AddEmployee.jsx';
 import EditEmployee from './components/EmployeeDetails/EditEmployee.jsx';
 import DailySalaryList from './components/Salary/Dailysalary/DailysalaryList.jsx';
 import AddDailysalary from './components/Salary/Dailysalary/AddDailysalary.jsx';
+import EditDailysalary from './components/Salary/Dailysalary/EditDailysalary.jsx';
+import AdvanceSalaryList from './components/Salary/Advancesalary/AdvancesalaryList.jsx';
 function App() {
   return (
     <Router>
@@ -29,9 +31,14 @@ function App() {
           <Route path='/employee/list' element={<EmployeesList/>}/>
           <Route path='/employee/add' element={<AddEmployee/>}/>
           <Route path='/employee/edit/:id' element={<EditEmployee/>}/>
-          {/* salary */}
+          {/* dailysalary */}
           <Route path='/salary/daily/list' element={<DailySalaryList/>}/>
           <Route path='/salary/daily/add' element={<AddDailysalary/>}/>
+          <Route path='/salary/daily/edit/:id' element={<EditDailysalary/>}/>
+          {/* advancesalary */}
+          <Route path='/salary/advance/list' element={<AdvanceSalaryList/>}/>
+          
+
         </Routes>
       </Layout>
     </Router>

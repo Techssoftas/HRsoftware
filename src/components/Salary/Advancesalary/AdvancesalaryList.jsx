@@ -7,15 +7,15 @@ import PrimeDataTable from "../../data-table";
 import { all_routes } from "../../../routes/all_routes.jsx";
 import TooltipIcons from "../../../components/tooltip-content/tooltipIcons.jsx";
 import RefreshIcon from "../../../components/tooltip-content/refresh.jsx";
-import { getDailySalaryEntries } from "../../../Redux/Salary/dailysalarySlice.js";
+import {getAdvanceSalaries} from "../../../Redux/Salary/advancesalarySlice"
 import DeleteModal from "../../delete-modal";
-import EditDailysalary from "./EditDailysalary.jsx";
-const DailySalaryList = () => {
+// import EditEmployee from "./EditEmployee.jsx";
+const AdvanceSalaryList = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { dailySalaryEntries, loading } = useSelector((state) => state.dailySalary);   
-  const dataSource = [...(dailySalaryEntries?.results || [])].sort(
+  const { advanceSalaries, loading } = useSelector((state) => state.dailySalary);   
+  const dataSource = [...(advanceSalaries?.results || [])].sort(
   (a, b) => b.id - a.id
 );
 
@@ -28,7 +28,7 @@ const DailySalaryList = () => {
 
   // LOAD COLORS ON MOUNT
   useEffect(() => {
-  dispatch(getDailySalaryEntries({ page: currentPage, rows }));
+  dispatch(getAdvanceSalaries({ page: currentPage, rows }));
 }, [dispatch, currentPage, rows]);
 
 
@@ -99,8 +99,8 @@ const columns = [
 ];
 
 
-const data = dailySalaryEntries?.results || [];
-  const totalRecords = dailySalaryEntries?.count || 0;
+const data = advanceSalaries?.results || [];
+  const totalRecords = advanceSalaries?.count || 0;
 console.log(dataSource)
   return (
     <>
@@ -349,10 +349,10 @@ console.log(dataSource)
       
        
     </div>
-    <DeleteModal selectedId={selectedId} type="dailySalaryEntries" />
+    <DeleteModal selectedId={selectedId} type="advanceSalaries" />
     </>
     );
 
 };
 
-export default DailySalaryList;
+export default AdvanceSalaryList;

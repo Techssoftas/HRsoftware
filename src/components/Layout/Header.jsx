@@ -312,7 +312,7 @@ const Header = () => {
       },
       {
         name: "Advance",
-        path: "/salary/advance",
+        path: "/salary/advance/list",
         icon: <i className="ti ti-package fs-16 me-2"></i>,
       },
       {
