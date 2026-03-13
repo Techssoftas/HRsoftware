@@ -232,6 +232,8 @@ export const all_routes = {
   successThree: "/success-3",
   employeelist: "/employee/list",
   dailysalarysist: "/salary/daily/list",
+  monthlysalarylist: "/salary/monthly/list",
+  paidsalarylist: "/salary/paid/list",
   incomelist: "/income",
   incomecategory: "/income-category",
   product: "/products",
