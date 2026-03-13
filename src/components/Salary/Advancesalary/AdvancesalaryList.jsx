@@ -14,10 +14,10 @@ const AdvanceSalaryList = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { advanceSalaries, loading } = useSelector((state) => state.dailySalary);   
+  const { advanceSalaries, loading } = useSelector((state) => state.advanceSalary);
   const dataSource = [...(advanceSalaries?.results || [])].sort(
-  (a, b) => b.id - a.id
-);
+    (a, b) => b.id - a.id
+  );
 
   const [editData, setEditData] = useState(null);
   const [selectedId, setSelectedId] = useState(null);
@@ -33,47 +33,31 @@ const AdvanceSalaryList = () => {
 
 
 const columns = [
-{
-  header: "S.No",
-  body: (_row, { rowIndex }) =>
-    (currentPage - 1) * rows + rowIndex + 1
-},
+  {
+    header: "S.No",
+    body: (_row, { rowIndex }) =>
+      (currentPage - 1) * rows + rowIndex + 1
+  },
 
-{
-  header: "Employee ID",
-  field: "employee_id_display"
-},
+  {
+    header: "Employee ID",
+    field: "employee_id_display"
+  },
 
-{
-  header: "Employee Name",
-  field: "employee_name"
-},
+  {
+    header: "Employee Name",
+    field: "employee_name"
+  },
 
-{
-  header: "Date",
-  field: "date"
-},
+  {
+    header: "Amount",
+    field: "amount"
+  },
 
-{
-  header: "Shift",
-  field: "shift_value"
-},
-
-{
-  header: "OT Hours",
-  field: "ot_hours"
-},
-
-{
-  header: "Total Hours",
-  field: "total_hours"
-},
-
-{
-  header: "Salary",
-  field: "amount_earned"
-},
-
+  {
+    header: "Date Given",
+    field: "date_given"
+  },
 {
   header: "Actions",
   body: (row) => (
@@ -109,15 +93,15 @@ console.log(dataSource)
         <div className="page-header">
           <div className="add-item d-flex">
             <div className="page-title">
-              <h4>Daily Salary</h4>
-              <h6>Manage your Daily Salary Entries</h6>
+              <h4>Advance Salary</h4>
+              <h6>Manage your Advance Salary Entries</h6>
             </div>
           </div>
           <ul className="table-top-head">
             <li>
               <div className="d-flex me-2 pe-2 border-end">
                 <Link
-                  to={all_routes.dailysalarysist}
+                  to={all_routes.advancesalarylist}
                   className="btn-list active  bg-primary me-2">
                   
                   <i data-feather="list" className="feather-list text-white" />
@@ -131,9 +115,9 @@ console.log(dataSource)
             <RefreshIcon />
             {/* <CollapesIcon /> */}
           </ul>
-          <Link to="/salary/daily/add" className="btn btn-primary">
+          <Link to={all_routes.advancesalaryadd} className="btn btn-primary">
   <i className="ti ti-circle-plus me-1"></i>
-  Add Daily Salary
+  Add Advance Salary
 </Link>
         </div>
         <div className="row">

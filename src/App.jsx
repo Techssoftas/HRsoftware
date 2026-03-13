@@ -15,6 +15,7 @@ import DailySalaryList from './components/Salary/Dailysalary/DailysalaryList.jsx
 import AddDailysalary from './components/Salary/Dailysalary/AddDailysalary.jsx';
 import EditDailysalary from './components/Salary/Dailysalary/EditDailysalary.jsx';
 import AdvanceSalaryList from './components/Salary/Advancesalary/AdvancesalaryList.jsx';
+import AddAdvancesalary from './components/Salary/Advancesalary/AddAdvancesalary.jsx';
 function App() {
   return (
     <Router>
@@ -37,7 +38,7 @@ function App() {
           <Route path='/salary/daily/edit/:id' element={<EditDailysalary/>}/>
           {/* advancesalary */}
           <Route path='/salary/advance/list' element={<AdvanceSalaryList/>}/>
-          
+          <Route path='/salary/advance/add' element={<AddAdvancesalary/>}/>
 
         </Routes>
       </Layout>
