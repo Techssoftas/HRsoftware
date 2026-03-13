@@ -5,7 +5,6 @@ import designationsReducer from "../Redux/Master/designationSlice"
 import employeeReducer from "../Redux/Employe/employeeSlice"
 import sidebarReducer from "../core/redux/sidebarSlice";
 import dailySalaryReducer from "../Redux/Salary/dailysalarySlice"
-import advancesalaryReducer from "../Redux/Salary/advancesalarySlice"
 
 export const store = configureStore({
   reducer: {
@@ -18,7 +17,6 @@ export const store = configureStore({
     employees: employeeReducer,
     //salary
     dailySalary: dailySalaryReducer,
-    advanceSalary: advancesalaryReducer,
     
 
 },
