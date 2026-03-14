@@ -18,6 +18,7 @@ const AdvanceSalaryList = () => {
   const dataSource = [...(advanceSalaries?.results || [])].sort(
     (a, b) => b.id - a.id
   );
+  
 
   const [editData, setEditData] = useState(null);
   const [selectedId, setSelectedId] = useState(null);

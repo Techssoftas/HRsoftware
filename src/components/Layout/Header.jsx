@@ -317,7 +317,7 @@ const Header = () => {
       },
       {
         name: "Paid Salary",
-        path: "/salary/paid",
+        path: "/salary/paid/list",
         icon: <i className="ti ti-package fs-16 me-2"></i>,
       },
       
