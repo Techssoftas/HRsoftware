@@ -13,9 +13,6 @@ import AddEmployee from './components/EmployeeDetails/AddEmployee.jsx';
 import EditEmployee from './components/EmployeeDetails/EditEmployee.jsx';
 import DailySalaryList from './components/Salary/Dailysalary/DailysalaryList.jsx';
 import AddDailysalary from './components/Salary/Dailysalary/AddDailysalary.jsx';
-import MonthlySalaryList from './components/Salary/Monthlysalary/MonthlysalaryList.jsx';
-import EditMonthlySalary from './components/Salary/Monthlysalary/EditMonthlySalary.jsx';
-import PaidSalaryList from './components/Salary/Monthlysalary/PaidSalaryList.jsx';
 function App() {
   return (
     <Router>
@@ -32,14 +29,9 @@ function App() {
           <Route path='/employee/list' element={<EmployeesList/>}/>
           <Route path='/employee/add' element={<AddEmployee/>}/>
           <Route path='/employee/edit/:id' element={<EditEmployee/>}/>
-          {/* salary */}
+          {/* dailysalary */}
           <Route path='/salary/daily/list' element={<DailySalaryList/>}/>
           <Route path='/salary/daily/add' element={<AddDailysalary/>}/>
-          <Route path='/salary/monthly' element={<MonthlySalaryList/>}/>
-          <Route path='/salary/monthly/list' element={<MonthlySalaryList/>}/>
-          <Route path='/salary/monthly/edit/:id' element={<EditMonthlySalary/>}/>
-          <Route path='/salary/paid' element={<PaidSalaryList/>}/>
-          <Route path='/salary/paid/list' element={<PaidSalaryList/>}/>
         </Routes>
       </Layout>
     </Router>
