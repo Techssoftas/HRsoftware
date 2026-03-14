@@ -20,6 +20,8 @@ import AddAdvancesalary from './components/Salary/Advancesalary/AddAdvancesalary
 import EditAdvancesalary from './components/Salary/Advancesalary/EditAdvancesalary.jsx';
 import EditMonthlySalary from './components/Salary/Monthlysalary/EditMonthlySalary.jsx'
 import PaidSalaryList from './components/Salary/Monthlysalary/PaidSalaryList.jsx'
+import Maintanancelist from './components/Maintanance/MaintananceList.jsx';
+import AddCertificate from './components/Maintanance/AddCertificate.jsx';
 function App() {
   return (
     <Router>
@@ -48,6 +50,9 @@ function App() {
           <Route path='/salary/advance/list' element={<AdvanceSalaryList/>}/>
           <Route path='/salary/advance/add' element={<AddAdvancesalary/>}/>
           <Route path='/salary/advance/edit/:id' element={<EditAdvancesalary/>}/>
+          {/* maintanance */}
+          <Route path='/maintanance/list' element={<Maintanancelist/>}/>
+          <Route path='/maintanance/add' element={<AddCertificate/>}/>
         </Routes>
       </Layout>
     </Router>

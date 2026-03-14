@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react"; // added useCallback
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector} from "react-redux";
-import { createAdvanceSalary } from "../../../Redux/Salary/advancesalarySlice";
+import { updateAdvanceSalary } from "../../../Redux/Salary/advancesalarySlice";
 import { getDesignations } from "../../../Redux/Master/designationSlice";
 import { getEmployeeByEmployeeId } from "../../../Redux/Employe/employeeSlice";
 import { getShiftByValue, getShifts } from "../../../Redux/Master/shiftSlice";
@@ -13,11 +13,15 @@ import CommonDatePicker from "../../../components/date-picker/common-date-picker
 import CommonSelect from "../../../components/select/common-select";
 import { Editor } from "primereact/editor";
 import { useRef } from "react";
+import { useParams } from "react-router-dom";
+import { getAdvanceSalaryById } from "../../../Redux/Salary/advancesalarySlice";
 
 const EditAdvancesalary = () => {
+  const { id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const route = all_routes;
+  const { advanceSalaryById } = useSelector((state) => state.advanceSalary);
   const { designations, loading } = useSelector((state) => state.designations);
   const { employeeByEmployeeId } = useSelector((state) => state.employees);
   const { shiftByValue } = useSelector((state) => state.shifts);
@@ -156,23 +160,27 @@ const EditAdvancesalary = () => {
     calculateTotal();
   }, [calculateTotal]);
 
+  useEffect(() => {
+  dispatch(getAdvanceSalaryById(id));
+}, [dispatch, id]);
+
   const handleSubmit = (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const payload = {
-      employee: selectedEmployeeId,
-      date_given: formatDate(date),
-      amount: parseFloat(formData.amount) || 0,
-    };
-
-    dispatch(createAdvanceSalary(payload))
-      .unwrap()
-      .then(() => {
-        setTimeout(() => {
-          navigate(route.advancesalarylist);
-        }, 1500);
-      });
+  const payload = {
+    employee: selectedEmployeeId,
+    date_given: formatDate(date),
+    amount: parseFloat(formData.amount) || 0,
   };
+
+  dispatch(updateAdvanceSalary({ id, data: payload }))
+    .unwrap()
+    .then(() => {
+      setTimeout(() => {
+        navigate(route.advancesalarylist);
+      }, 1500);
+    });
+};
 
   useEffect(() => {
     dispatch(getEmployees({ page: 1, rows: 100 }));
@@ -181,6 +189,26 @@ const EditAdvancesalary = () => {
   useEffect(() => {
     dispatch(getShifts({ page: 1, rows: 100 }));
   }, [dispatch]);
+
+useEffect(() => {
+  if (advanceSalaryById && employees?.results) {
+    // Find employee in employees list whose id matches advanceSalaryById.employee
+    const emp = employees.results.find(e => e.id === advanceSalaryById.employee);
+    if (emp) {
+      setSelectedEmployee(emp.employee_id); // for dropdown
+      setFormData(prev => ({
+        ...prev,
+        employee_name: emp.employee_name || '',
+        designation_name: emp.designation_name || '',
+        salary_type: emp.salary_type || '',
+        base_salary: emp.base_salary || '',
+        amount: advanceSalaryById.amount || '',
+      }));
+      setDate(new Date(advanceSalaryById.date_given));
+      setSelectedEmployeeId(emp.id); // numeric id for payload
+    }
+  }
+}, [advanceSalaryById, employees]);
 
   useEffect(() => {
     if (employeeByEmployeeId?.results?.length > 0) {
@@ -259,17 +287,12 @@ const EditAdvancesalary = () => {
                               Employee ID
                               <span className="text-danger ms-1">*</span>
                             </label>
-                            <CommonSelect
-                              className="w-100"
-                              options={employeeOptions}
-                              value={selectedEmployee}
-                              onChange={(e) => {
-                                setSelectedEmployee(e.value);
-                                dispatch(getEmployeeByEmployeeId(e.value));
-                              }}
-                              placeholder="Select Employee ID"
-                              filter={true}
-                            />
+                            <input
+  type="text"
+  className="form-control"
+  value={selectedEmployee || ""}
+  readOnly
+/>
                           </div>
                         </div>
 
@@ -305,7 +328,7 @@ const EditAdvancesalary = () => {
                           </div>
                         </div>
 
-                        <div className="col-lg-4 col-md-6">
+                        {/* <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">
                               Salary Type
@@ -335,7 +358,7 @@ const EditAdvancesalary = () => {
                               readOnly
                             />
                           </div>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                   </div>
@@ -406,7 +429,7 @@ const EditAdvancesalary = () => {
                 Cancel
               </button>
               <button type="submit" className="btn btn-primary">
-                Add Advance
+                Update Advance
               </button>
             </div>
           </form>

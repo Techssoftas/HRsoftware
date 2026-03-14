@@ -234,6 +234,7 @@ export const all_routes = {
   dailysalarysist: "/salary/daily/list",
   advancesalarylist: "/salary/advance/list",
   advancesalaryadd: "/salary/advance/add",
+  addcertificate: "/maintanance/add",
   incomelist: "/income",
   incomecategory: "/income-category",
   product: "/products",

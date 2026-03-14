@@ -108,6 +108,28 @@ export const deleteAdvanceSalary = createAsyncThunk(
   }
 );
 
+export const getAdvanceSalaryById = createAsyncThunk(
+  "advanceSalary/getById",
+  async (id, { rejectWithValue }) => {
+    try {
+
+      const token = Cookies.get("token") || Cookies.get("Token");
+
+      const res = await axios.get(
+        `${baseURL}/hr/advances/${id}/`,
+        {
+          headers: { Authorization: `Token ${token}` },
+        }
+      );
+
+      return res.data;
+
+    } catch (err) {
+      return rejectWithValue(err.response?.data || "Error fetching advance salary");
+    }
+  }
+);
+
 
 // ---------------- SLICE ----------------
 const advanceSalarySlice = createSlice({
@@ -117,6 +139,7 @@ const advanceSalarySlice = createSlice({
   initialState: {
     loading: false,
     advanceSalaries: { count: 0, results: [] },
+    advanceSalaryById: null,
     error: null,
     success: false,
   },
@@ -179,7 +202,10 @@ const advanceSalarySlice = createSlice({
 
         state.advanceSalaries.count -= 1;
 
-      });
+      })
+      .addCase(getAdvanceSalaryById.fulfilled, (state, action) => {
+  state.advanceSalaryById = action.payload;
+});
 
   },
 
