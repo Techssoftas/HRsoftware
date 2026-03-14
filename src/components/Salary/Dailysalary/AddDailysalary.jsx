@@ -1,190 +1,91 @@
-import React, { useEffect, useState, useCallback } from "react"; // added useCallback
+import React, { useEffect, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector} from "react-redux";
-import { createDailySalaryEntry } from "../../../Redux/Salary/dailysalarySlice"
+import { useDispatch, useSelector } from "react-redux";
+import { createDailySalaryEntry } from "../../../Redux/Salary/dailysalarySlice";
 import { getDesignations } from "../../../Redux/Master/designationSlice";
 import { getEmployeeByEmployeeId } from "../../../Redux/Employe/employeeSlice";
-import { getShiftByValue,getShifts } from "../../../Redux/Master/shiftSlice";
-import AppAlert from "../../AppAlert"
+import { getShiftByValue, getShifts } from "../../../Redux/Master/shiftSlice";
+import AppAlert from "../../AppAlert";
 import { all_routes } from "../../../routes/all_routes";
 import RefreshIcon from "../../../components/tooltip-content/refresh";
 import { getEmployees } from "../../../Redux/Employe/employeeSlice";
 import CommonDatePicker from "../../../components/date-picker/common-date-picker";
 import CommonSelect from "../../../components/select/common-select";
-import { Editor } from "primereact/editor";
-import { useRef } from "react";
 
 const AddDailysalary = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const route = all_routes;
-  const { designations, loading } = useSelector((state) => state.designations);
-  const { employeeByEmployeeId } = useSelector((state) => state.employees);
-  const { shiftByValue } = useSelector((state) => state.shifts);
-  const { employees } = useSelector((state) => state.employees);
-  const { shifts } = useSelector((state) => state.shifts);
+
+  // Redux State
+  const { employeeByEmployeeId, employees } = useSelector((state) => state.employees);
+  const { shiftByValue, shifts } = useSelector((state) => state.shifts);
+
+  // Local State
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
   const [selectedShift, setSelectedShift] = useState(null);
   const [date, setDate] = useState(new Date());
   const [selectedOT, setSelectedOT] = useState(null);
-  const [totalHours, setTotalHours] = useState(""); // display format (e.g., "8.30")
-
-  // NEW STATE: numeric total hours and calculated salary
+  const [totalHours, setTotalHours] = useState("");
   const [totalHoursDecimal, setTotalHoursDecimal] = useState(0);
   const [totalDaySalary, setTotalDaySalary] = useState(0);
-
-  const employeeOptions =
-    employees?.results?.map((emp) => ({
-      label: emp.employee_id,
-      value: emp.employee_id
-    })) || [];
-
-  const shiftOptions =
-    shifts?.results?.map((item) => ({
-      label: item.shift_value,
-      value: item.shift_value,
-    })) || [];
-
-  const otOptions = [
-    { label: "30 Minutes", value: "0.5" },
-    { label: "1 Hour", value: "1" },
-    { label: "1.30 Minutes", value: "1.5" },
-    { label: "2 Hour", value: "2" },
-    { label: "2.30 Minutes", value: "2.5" },
-    { label: "3 Hour", value: "3" },
-    { label: "3.30 Minutes", value: "3.5" }
-  ];
 
   const [formData, setFormData] = useState({
     employee_name: "",
     designation_name: "",
     employee_id: "",
-    standard_hours: "", 
-    contact_number: "",
-    dob: null,
-    joining_date: null,
-    designation: "",
-    blood_group: "",
-    education: "",
-    experience: "",
-    about: "",
-    address: "",
-    country: "",
-    state: "",
-    city: "",
-    emergency_contact: "",
-    relation: "",
-    bank_name: "",
-    account_number: "",
-    ifsc_code: "",
-    bank_branch:"",
-    photo: null,
-    aadhaar_pdf: null,
-    pan_pdf: null,
-    passbook_pdf: null,
-    has_esi_pf: "",
-    pf_account_number: "",
-    esi_account_number: "",
-    aadhaar_number: "",
-    pan_number: "",
-    pf_amount: "",
-    esi_amount:"",
-    appointment_order: null,
+    salary_type: "", // Loaded from employee data
+    base_salary: 0,
+    standard_hours: "",
   });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value
-    }));
-  }; 
+  // Helper: Detect if salary type is Monthly (Case-Insensitive)
+  const isMonthly = formData.salary_type?.toLowerCase() === "monthly";
 
-  const handleImageClick = () => {
-    fileInputRef.current.click();
+  // Helper: Calculate days in the selected month
+  const getDaysInMonth = (dateObj) => {
+    return new Date(dateObj.getFullYear(), dateObj.getMonth() + 1, 0).getDate();
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setPreviewImage(URL.createObjectURL(file));
-      setFormData((prev) => ({
-        ...prev,
-        photo: file
-      }));
-    }
-  };
-  
-  const handleFileChange = (e) => {
-    const { name, files } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: files[0]
-    }));
-  };
-
-  const formatDate = (date) => {
-    if (!date) return null;
-    if (date instanceof Date) {
-      return date.toISOString().split("T")[0];
-    }
-    return date;
-  };
-
-  // NEW: function to recalc total hours and salary
   const calculateTotal = useCallback(() => {
-    const shiftHours = parseFloat(formData.standard_hours) || 0;
-    const otHours = parseFloat(selectedOT) || 0;
-    const totalDecimal = shiftHours + otHours;
-    setTotalHoursDecimal(totalDecimal);
-
-    // Format for display: hours.minutes (e.g., 8.30 for 8h30m)
-    const hours = Math.floor(totalDecimal);
-    const minutes = Math.round((totalDecimal - hours) * 60);
-    const formatted = `${hours}.${minutes.toString().padStart(2, "0")}`;
-    setTotalHours(formatted);
-
     const baseSalary = parseFloat(formData.base_salary) || 0;
-    const salary = totalDecimal * baseSalary;
-    setTotalDaySalary(salary);
-  }, [formData.standard_hours, formData.base_salary, selectedOT]);
 
-  // Recalculate whenever shift hours, OT, or base salary change
+    if (isMonthly) {
+      // Monthly Logic: Base Salary / Total Days in Month (28, 29, 30, or 31)
+      const daysInMonth = getDaysInMonth(date);
+      const calculatedDaily = baseSalary / daysInMonth;
+      
+      setTotalDaySalary(calculatedDaily);
+      setTotalHoursDecimal(0);
+      setTotalHours("N/A");
+    } else {
+      // Hourly Logic
+      const shiftHours = parseFloat(formData.standard_hours) || 0;
+      const otHours = parseFloat(selectedOT) || 0;
+      const totalDecimal = shiftHours + otHours;
+      
+      setTotalHoursDecimal(totalDecimal);
+
+      const hours = Math.floor(totalDecimal);
+      const minutes = Math.round((totalDecimal - hours) * 60);
+      setTotalHours(`${hours}.${minutes.toString().padStart(2, "0")}`);
+
+      setTotalDaySalary(totalDecimal * baseSalary);
+    }
+  }, [formData.standard_hours, formData.base_salary, isMonthly, selectedOT, date]);
+
   useEffect(() => {
     calculateTotal();
   }, [calculateTotal]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    const payload = {
-      employee: selectedEmployeeId,
-      date: formatDate(date),
-      worked_hours: parseFloat(formData.standard_hours) || 0,
-      shift_value: selectedShift,
-      ot_hours: parseFloat(selectedOT) || 0,
-      total_hours: totalHoursDecimal,
-      amount_earned: totalDaySalary,
-    };
-
-    dispatch(createDailySalaryEntry(payload))
-      .unwrap()
-      .then(() => {
-        setTimeout(() => {
-          navigate("/salary/daily/list");
-        }, 1500);
-      });
-  };
-
+  // Initial Data Fetch
   useEffect(() => {
     dispatch(getEmployees({ page: 1, rows: 100 }));
-  }, [dispatch]);
-
-  useEffect(() => {
     dispatch(getShifts({ page: 1, rows: 100 }));
   }, [dispatch]);
 
+  // Handle Employee Selection Response
   useEffect(() => {
     if (employeeByEmployeeId?.results?.length > 0) {
       const emp = employeeByEmployeeId.results[0];
@@ -200,6 +101,7 @@ const AddDailysalary = () => {
     }
   }, [employeeByEmployeeId]);
 
+  // Handle Shift Selection Response
   useEffect(() => {
     if (shiftByValue?.results?.length > 0) {
       const shift = shiftByValue.results[0];
@@ -210,176 +112,149 @@ const AddDailysalary = () => {
     }
   }, [shiftByValue]);
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const payload = {
+      employee: selectedEmployeeId,
+      date: date.toISOString().split("T")[0],
+      worked_hours: isMonthly ? 0 : parseFloat(formData.standard_hours) || 0,
+      shift_value: isMonthly ? 0 : parseFloat(formData.standard_hours) || 0,
+      ot_hours: isMonthly ? 0 : parseFloat(selectedOT) || 0,
+      total_hours: totalHoursDecimal,
+      amount_earned: totalDaySalary.toFixed(2),
+    };
+
+    dispatch(createDailySalaryEntry(payload))
+      .unwrap()
+      .then(() => {
+        setTimeout(() => {
+          navigate("/salary/daily/list");
+        }, 1500);
+      });
+  };
+
+  const employeeOptions = employees?.results?.map((emp) => ({
+    label: emp.employee_id,
+    value: emp.employee_id
+  })) || [];
+
+  const shiftOptions = shifts?.results?.map((item) => ({
+    label: item.shift_value,
+    value: item.shift_value,
+  })) || [];
+
+  const otOptions = [
+    { label: "30 Minutes", value: "0.5" },
+    { label: "1 Hour", value: "1" },
+    { label: "1.30 Minutes", value: "1.5" },
+    { label: "2 Hour", value: "2" },
+    { label: "2.30 Minutes", value: "2.5" },
+    { label: "3 Hour", value: "3" },
+    { label: "3.30 Minutes", value: "3.5" }
+  ];
+
   return (
-    <div>
-      <div className="page-wrapper" id="employee-modal">
-        <div className="content">
-          <div className="page-header">
-            <div className="add-item d-flex">
-              <div className="page-title">
-                <h4>Add Daily Salary</h4>
-                <h6>Create new Daily Salary Entry</h6>
-              </div>
-            </div>
-            <ul className="table-top-head">
-              <RefreshIcon />
-            </ul>
-            <div className="page-btn">
-              <Link to={route.dailysalarysist} className="btn btn-secondary">
-                <i className="feather icon-arrow-left me-2" />
-                Back to List
-              </Link>
+    <div className="page-wrapper" id="employee-modal">
+      <div className="content">
+        <div className="page-header">
+          <div className="add-item d-flex">
+            <div className="page-title">
+              <h4>Add Daily Salary</h4>
+              <h6>Create new Daily Salary Entry</h6>
             </div>
           </div>
-          <form onSubmit={handleSubmit}>
-            <div className="accordions-items-seperate" id="accordionExample">
-              <div className="accordion-item border mb-4">
-                <h2 className="accordion-header" id="headingOne">
-                  <div
-                    className="accordion-button bg-white"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#collapseOne"
-                    aria-controls="collapseOne">
-                    <div className="d-flex align-items-center justify-content-between flex-fill">
-                      <h5 className="d-inline-flex align-items-center">
-                        <i className="ti ti-users text-primary me-2" />
-                        <span>Employee Information</span>
-                      </h5>
+          <ul className="table-top-head">
+            <RefreshIcon />
+          </ul>
+          <div className="page-btn">
+            <Link to={route.dailysalarysist} className="btn btn-secondary">
+              <i className="feather icon-arrow-left me-2" />
+              Back to List
+            </Link>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="accordions-items-seperate" id="accordionExample">
+            {/* Section 1: Employee Information */}
+            <div className="accordion-item border mb-4">
+              <h2 className="accordion-header" id="headingOne">
+                <div className="accordion-button bg-white" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                  <h5 className="d-inline-flex align-items-center">
+                    <i className="ti ti-users text-primary me-2" />
+                    <span>Employee Information</span>
+                  </h5>
+                </div>
+              </h2>
+              <div id="collapseOne" className="accordion-collapse collapse show" data-bs-parent="#accordionExample">
+                <div className="accordion-body border-top">
+                  <div className="row">
+                    <div className="col-lg-4 col-md-6">
+                      <div className="mb-3">
+                        <label className="form-label">Employee ID <span className="text-danger">*</span></label>
+                        <CommonSelect
+                          className="w-100"
+                          options={employeeOptions}
+                          value={selectedEmployee}
+                          onChange={(e) => {
+                            setSelectedEmployee(e.value);
+                            dispatch(getEmployeeByEmployeeId(e.value));
+                          }}
+                          placeholder="Select Employee ID"
+                          filter={true}
+                        />
+                      </div>
                     </div>
-                  </div>
-                </h2>
-                <div
-                  id="collapseOne"
-                  className="accordion-collapse collapse show"
-                  aria-labelledby="headingOne"
-                  data-bs-parent="#accordionExample">
-                  <div className="accordion-body border-top">
-                    <div className="new-employee-field">
-                      <div className="row">
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">
-                              Employee ID
-                              <span className="text-danger ms-1">*</span>
-                            </label>
-                            <CommonSelect
-                              className="w-100"
-                              options={employeeOptions}
-                              value={selectedEmployee}
-                              onChange={(e) => {
-                                setSelectedEmployee(e.value);
-                                dispatch(getEmployeeByEmployeeId(e.value));
-                              }}
-                              placeholder="Select Employee ID"
-                              filter={true}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">
-                              Employee Name
-                              <span className="text-danger ms-1">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              name="employee_name"
-                              className="form-control"
-                              value={formData.employee_name}
-                              readOnly
-                            />
-                          </div>
-                        </div>
-                       
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">
-                              Designation
-                              <span className="text-danger ms-1">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              name="designation_name"
-                              className="form-control"
-                              value={formData.designation_name}
-                              readOnly
-                            />
-                          </div>
-                        </div>
-
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">
-                              Salary Type
-                              <span className="text-danger ms-1">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              name="salary_type"
-                              className="form-control"
-                              value={formData.salary_type}
-                              readOnly
-                            />
-                          </div>
-                        </div>
-
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">
-                              Base Salary (per hour)
-                              <span className="text-danger ms-1">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              name="base_salary"
-                              className="form-control"
-                              value={formData.base_salary}
-                              readOnly
-                            />
-                          </div>
-                        </div>
+                    <div className="col-lg-4 col-md-6">
+                      <div className="mb-3">
+                        <label className="form-label">Employee Name</label>
+                        <input type="text" className="form-control" value={formData.employee_name} readOnly />
+                      </div>
+                    </div>
+                    <div className="col-lg-4 col-md-6">
+                      <div className="mb-3">
+                        <label className="form-label">Salary Type</label>
+                        <input type="text" className="form-control" value={formData.salary_type} readOnly />
+                      </div>
+                    </div>
+                    <div className="col-lg-4 col-md-6">
+                      <div className="mb-3">
+                        <label className="form-label">Base Salary ({isMonthly ? "Per Month" : "Per Hour"})</label>
+                        <input type="text" className="form-control" value={formData.base_salary} readOnly />
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="accordion-item border mb-4">
-                <div className="accordion-header" id="headingThree">
-                  <div
-                    className="accordion-button bg-white"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#collapseThree"
-                    aria-controls="collapseThree">
-                    <div className="d-flex align-items-center justify-content-between flex-fill">
-                      <h5 className="d-inline-flex align-items-center">
-                        <i className="feather icon-map-pin feather-edit text-primary me-2" />
-                        <span>Day Salary Information</span>
-                      </h5>
-                    </div>
-                  </div>
+            </div>
+
+            {/* Section 2: Day Salary Information */}
+            <div className="accordion-item border mb-4">
+              <div className="accordion-header" id="headingThree">
+                <div className="accordion-button bg-white" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                  <h5 className="d-inline-flex align-items-center">
+                    <i className="feather icon-map-pin text-primary me-2" />
+                    <span>Day Salary Information</span>
+                  </h5>
                 </div>
-                <div
-                  id="collapseThree"
-                  className="accordion-collapse collapse show"
-                  aria-labelledby="headingThree"
-                  data-bs-parent="#accordionExample">
-                  <div className="accordion-body border-top">
-                    <div className="other-info">
-                      <div className="row">
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Date</label>
-                            <div className="input-groupicon calender-input">
-                              <i className="feather icon-calendar info-img" />
-                              <CommonDatePicker
-                                value={date}
-                                onChange={setDate}
-                                className="w-100"
-                              />
-                            </div>
-                          </div>
+              </div>
+              <div id="collapseThree" className="accordion-collapse collapse show" data-bs-parent="#accordionExample">
+                <div className="accordion-body border-top">
+                  <div className="row">
+                    <div className="col-lg-4 col-md-6">
+                      <div className="mb-3">
+                        <label className="form-label">Date</label>
+                        <div className="input-groupicon calender-input">
+                          <i className="feather icon-calendar info-img" />
+                          <CommonDatePicker value={date} onChange={setDate} className="w-100" />
                         </div>
+                      </div>
+                    </div>
+
+                    {/* CONDITIONALLY RENDERED HOURLY FIELDS */}
+                    {!isMonthly && (
+                      <>
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">Shift</label>
@@ -392,20 +267,13 @@ const AddDailysalary = () => {
                                 dispatch(getShiftByValue(e.value));
                               }}
                               placeholder="Choose Shift"
-                              filter={false}
                             />
                           </div>
                         </div>
-                        
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">Shift Hours</label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              value={formData.standard_hours}
-                              readOnly
-                            />
+                            <input type="text" className="form-control" value={formData.standard_hours} readOnly />
                           </div>
                         </div>
                         <div className="col-lg-4 col-md-6">
@@ -415,60 +283,53 @@ const AddDailysalary = () => {
                               className="w-100"
                               options={otOptions}
                               value={selectedOT}
-                              onChange={(e) => setSelectedOT(e.value)} // just set OT, calculation will happen in useEffect
+                              onChange={(e) => setSelectedOT(e.value)}
                               placeholder="Choose OT"
-                              filter={false}
                             />
                           </div>
                         </div>
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">Total Hours</label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              value={totalHours} // display formatted string
-                              readOnly
-                            />
+                            <input type="text" className="form-control" value={totalHours} readOnly />
                           </div>
                         </div>
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Total Day Salary</label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              value={totalDaySalary.toFixed(2)} // show with two decimals
-                              readOnly
-                            />
-                          </div>
-                        </div>
+                      </>
+                    )}
+
+                    {/* ALWAYS VISIBLE SALARY CALCULATION */}
+                    <div className="col-lg-4 col-md-6">
+                      <div className="mb-3">
+                        <label className="form-label">Total Day Salary</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          style={{ backgroundColor: "#f8f9fa", fontWeight: "bold" }}
+                          value={totalDaySalary.toFixed(2)}
+                          readOnly
+                        />
+                        {isMonthly && (
+                          <small className="text-primary">
+                            Based on {getDaysInMonth(date)} days in the selected month.
+                          </small>
+                        )}
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            
-            <div className="text-end mb-3">
-              <button type="button" className="btn btn-secondary me-2">
-                Cancel
-              </button>
-              <button type="submit" className="btn btn-primary">
-                Add Day Salary
-              </button>
-            </div>
-          </form>
-        </div>
-        <div className="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3">
-          <p className="mb-0">2014 - 2025 © DreamsPOS. All Right Reserved</p>
-          <p>
-            Designed &amp; Developed by{" "}
-            <Link to="#;" className="text-primary">
-              Dreams
-            </Link>
-          </p>
-        </div>
+          </div>
+
+          <div className="text-end mb-3">
+            <button type="button" className="btn btn-secondary me-2" onClick={() => navigate(-1)}>
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary" disabled={!selectedEmployeeId}>
+              Add Day Salary
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
