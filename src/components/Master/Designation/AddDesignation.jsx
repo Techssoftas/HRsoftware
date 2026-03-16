@@ -172,7 +172,7 @@ const DesignationAdd = ({ editData, setEditData }) => {
               </select>
 
               {/* BASE SALARY */}
-              <label className="form-label">Base Salary</label>
+              <label className="form-label">Base Salary (Per Hour)</label>
               <input
                 type="number"
                 className="form-control mb-3"

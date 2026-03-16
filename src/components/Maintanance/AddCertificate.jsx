@@ -65,6 +65,7 @@ const AddCertificate = ({ editData, setEditData }) => {
     const formData = new FormData();
     formData.append("name", name);
     formData.append("date", formatDate(date));
+    formData.append("is_active", true);
     if (file) {
       formData.append("file", file); // field name expected by backend
     }
@@ -156,11 +157,11 @@ const AddCertificate = ({ editData, setEditData }) => {
               </div>
 
               {/* File Upload */}
-              <label className="form-label">Certificate File (PDF/Image)</label>
+              <label className="form-label">Certificate File (Image)</label>
               <input
                 type="file"
                 className="form-control mb-3"
-                accept=".pdf, image/*"
+                accept=". image/*"
                 onChange={handleFileChange}
               />
               {editData && editData.file && (
@@ -177,6 +178,7 @@ const AddCertificate = ({ editData, setEditData }) => {
                 data-bs-dismiss="modal"
               >
                 Cancel
+                
               </button>
               <button
                 type="button"

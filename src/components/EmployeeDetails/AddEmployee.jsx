@@ -6,7 +6,6 @@ import { getDesignations } from "../../Redux/Master/designationSlice";
 import AppAlert from "../AppAlert"
 import { all_routes } from "../../routes/all_routes";
 import RefreshIcon from "../../components/tooltip-content/refresh";
-
 import CommonDatePicker from "../../components/date-picker/common-date-picker";
 import CommonSelect from "../../components/select/common-select";
 import { Editor } from "primereact/editor";
@@ -47,8 +46,13 @@ const navigate = useNavigate();
     label: item.name,
     value: item.id
   })) || [];
+  const [errors, setErrors] = useState({});
 
-  
+  const [appAlert, setAppAlert] = useState({
+  type: "",
+  message: "",
+  show: false
+});
 
 
   const gender = [
@@ -97,7 +101,7 @@ const states = Object.keys(stateCity).map((state) => ({
   country: "",
   state: "",
   city: "",
-  emergency_contact: "",
+  emergency_contact_number: "",
   relation: "",
   bank_name: "",
   account_number: "",
@@ -116,14 +120,67 @@ const states = Object.keys(stateCity).map((state) => ({
   esi_amount:"",
   appointment_order: null,
 });
-   const handleChange = (e) => {
+  const handleChange = (e) => {
   const { name, value } = e.target;
 
+  // Convert PAN and IFSC to uppercase automatically
+  const formattedValue =
+    name === "pan_number" || name === "ifsc_code"
+      ? value.toUpperCase()
+      : value;
+
   setFormData((prev) => ({
+  ...prev,
+  [name]: formattedValue
+}));
+
+  let errorMsg = "";
+
+  const phoneRegex = /^(?:\+91|91|0)?[6-9]\d{9}$/;
+  const aadhaarRegex = /^\d{4}\s\d{4}\s\d{4}$/;
+  const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+  const ifscRegex = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+  
+
+  if (name === "contact_number") {
+    if (!value) {
+      errorMsg = "Contact number is required";
+    } else if (!phoneRegex.test(value)) {
+      errorMsg = "Enter valid mobile number";
+    }
+  }
+
+  if (name === "emergency_contact_number") {
+    if (!value) {
+      errorMsg = "Emergency contact number is required";
+    } else if (!phoneRegex.test(value)) {
+      errorMsg = "Enter valid emergency number";
+    }
+  }
+
+  if (name === "aadhaar_number") {
+  if (value && !aadhaarRegex.test(value)) {
+    errorMsg = "Aadhaar must be 12 digits";
+  }
+}
+
+if (name === "pan_number") {
+  if (formattedValue && !panRegex.test(formattedValue)) {
+    errorMsg = "Enter valid PAN (ABCDE1234F)";
+  }
+}
+
+if (name === "ifsc_code") {
+  if (value && !ifscRegex.test(value)) {
+    errorMsg = "Enter valid IFSC (SBIN0001234)";
+  }
+}
+
+  setErrors((prev) => ({
     ...prev,
-    [name]: value
+    [name]: errorMsg
   }));
-}; 
+};
 
 const handleStateChange = (e) => {
 
@@ -149,22 +206,51 @@ const handleImageClick = () => {
 const handleImageChange = (e) => {
   const file = e.target.files[0];
 
-  if (file) {
-    setPreviewImage(URL.createObjectURL(file));
+  if (!file) return;
 
-    setFormData((prev) => ({
-      ...prev,
-      photo: file
-    }));
+  const maxSize = 200 * 1024; // 200 KB
+
+  if (file.size > maxSize) {
+    setAppAlert({
+      type: "danger",
+      message: "Profile image must be less than 200 KB",
+      show: true
+    });
+
+    e.target.value = "";
+    return;
   }
+
+  setPreviewImage(URL.createObjectURL(file));
+
+  setFormData((prev) => ({
+    ...prev,
+    photo: file
+  }));
 };
   
   const handleFileChange = (e) => {
   const { name, files } = e.target;
+  const file = files[0];
+
+  if (!file) return;
+
+  const maxSize = 2 * 1024 * 1024; // 2MB
+
+  if (file.size > maxSize) {
+    setAppAlert({
+      type: "danger",
+      message: "File size must be less than 2 MB",
+      show: true
+    });
+
+    e.target.value = "";
+    return;
+  }
 
   setFormData((prev) => ({
     ...prev,
-    [name]: files[0]
+    [name]: file
   }));
 };
 
@@ -185,8 +271,75 @@ const formatDate = (date) => {
   return date;
 };
 
+const validateForm = () => {
+  let newErrors = {};
+
+  const phoneRegex = /^(?:\+91|91|0)?[6-9]\d{9}$/;
+
+
+  if (!formData.contact_number) {
+  newErrors.contact_number = "Contact Number is required";
+} else if (!phoneRegex.test(formData.contact_number)) {
+  newErrors.contact_number = "Enter valid 10 digit mobile number";
+}
+
+  if (!date1) {
+    newErrors.date_of_birth = "Date of Birth is required";
+  }
+
+  if (!date2) {
+    newErrors.joining_date = "Joining Date is required";
+  }
+
+
+  if (!formData.emergency_contact_number) {
+  newErrors.emergency_contact_number =
+    "Emergency Contact Number is required";
+} else if (!phoneRegex.test(formData.emergency_contact_number)) {
+  newErrors.emergency_contact_number =
+    "Enter valid emergency contact number";
+}
+
+  setErrors(newErrors);
+
+  return Object.keys(newErrors).length === 0;
+};
+
 const handleSubmit = (e) => {
   e.preventDefault();
+
+  
+  // STEP VALIDATION
+  if (!formData.employee_name) {
+    setAppAlert({
+      type: "danger",
+      message: "Employee Name is required",
+      show: true
+    });
+    return;
+  }
+
+  if (!formData.contact_number) {
+    setAppAlert({
+      type: "danger",
+      message: "Contact Number is required",
+      show: true
+    });
+    return;
+  }
+
+  if (!selectedDesignation) {
+    setAppAlert({
+      type: "danger",
+      message: "Designation is required",
+      show: true
+    });
+    return;
+  }
+
+  if (!validateForm()) {
+    return;
+  }
 
   const data = new FormData();
 
@@ -243,12 +396,25 @@ const handleSubmit = (e) => {
   if (formData.appointment_order) data.append("appointment_order", formData.appointment_order)
 
   dispatch(createEmployee(data))
-    .unwrap()
-    .then(() => {
-      
-      setTimeout(() => {
-      navigate("/employee/list")
-    }, 1500);} );
+  .unwrap()
+  .then(() => {
+    setAppAlert({
+      type: "success",
+      message: "Employee added successfully",
+      show: true
+    });
+
+    setTimeout(() => {
+      navigate("/employee/list");
+    }, 1500);
+  })
+  .catch(() => {
+    setAppAlert({
+      type: "danger",
+      message: "Error adding employee",
+      show: true
+    });
+  });
 };
 
 
@@ -261,6 +427,13 @@ useEffect(() => {
 
   return (
     <div>
+      {appAlert.show && (
+  <AppAlert
+    type={appAlert.type}
+    message={appAlert.message}
+    onClose={() => setAppAlert({ ...appAlert, show: false })}
+  />
+)}
       <div className="page-wrapper" id="employee-modal">
         <div className="content">
           <div className="page-header">
@@ -275,7 +448,7 @@ useEffect(() => {
               {/* <CollapesIcon /> */}
             </ul>
             <div className="page-btn">
-              <Link to={route.employeelist} className="btn btn-secondary">
+               <Link to={route.employeelist} className="btn btn-secondary">
                 <i className="feather icon-arrow-left me-2" />
                 Back to List
               </Link>
@@ -312,6 +485,9 @@ useEffect(() => {
                               Employee Image
                               <span className="text-danger ms-1">*</span>
                             </label>
+                            <small className="text-muted d-block">
+  Max size: 200 KB
+</small>
                       <div className="profile-pic-upload">
                         
   <div className="profile-pic" onClick={handleImageClick}>
@@ -365,8 +541,11 @@ useEffect(() => {
                             <input
                              type="text"
                              name="employee_name"
+                             placeholder="Enter employee name"
                              className="form-control"
+                             
                              onChange={handleChange} />
+                             
                           </div>
                         </div>
 
@@ -378,11 +557,15 @@ useEffect(() => {
                               <span className="text-danger ms-1">*</span>
                             </label>
                             <input
-                            type="text"
+                            type="number"
                             name="contact_number"
+                            placeholder="Enter mobile number"
                             className="form-control"
                             onChange={handleChange}
                             />
+                            {errors.contact_number && (
+  <small className="text-danger">{errors.contact_number}</small>
+)}
                           </div>
                         </div>
                         
@@ -397,8 +580,11 @@ useEffect(() => {
                               <CommonDatePicker
                                 value={date1}
                                 onChange={setDate1}
+                                
                                 className="w-100" />
-                              
+                              {errors.date_of_birth && (
+  <small className="text-danger">{errors.date_of_birth}</small>
+)}
                             </div>
                           </div>
                         </div>
@@ -418,9 +604,11 @@ useEffect(() => {
                               gender: e.value
                               }));
                               }}
-                              placeholder="Choose"
+                              placeholder="Select Gender"
                               filter={false} />
-                            
+                            {errors.gender && (
+  <small className="text-danger">{errors.gender}</small>
+)}
                           </div>
                         </div>
 
@@ -433,6 +621,7 @@ useEffect(() => {
                             <input
                             type="text"
                             name="education"
+                            placeholder="Enter education qualification"
                             className="form-control"
                             onChange={handleChange}
                             />
@@ -448,6 +637,7 @@ useEffect(() => {
                             <input
                             type="text"
                             name="experience"
+                            placeholder="Enter experience (e.g., 2 Years)"
                             className="form-control"
                             onChange={handleChange}
                             />
@@ -466,7 +656,9 @@ useEffect(() => {
                                 value={date2}
                                 onChange={setDate2}
                                 className="w-100" />
-                              
+                              {errors.joining_date && (
+  <small className="text-danger">{errors.joining_date}</small>
+)}
                             </div>
                           </div>
                         </div>
@@ -483,7 +675,7 @@ useEffect(() => {
   options={designationOptions}
   value={selectedDesignation}
   onChange={(e) => setSelectedDesignation(e.value)}
-  placeholder="Choose"
+  placeholder="Select Designation"
   filter={true}
 />
                             
@@ -500,10 +692,89 @@ useEffect(() => {
                               options={bloodgroup}
                               value={selectedBloodGroup}
                               onChange={(e) => setSelectedBloodGroup(e.value)}
-                              placeholder="Choose"
+                              placeholder="Select Blood Group"
                               filter={false} />
                             
                           </div>
+                        </div>
+                        <div className="col-lg-4 col-md-6">
+                          <div className="mb-3">
+                            <label className="form-label">Aadhaar Number</label>
+                            <input
+  type="text"
+  name="aadhaar_number"
+  className="form-control"
+  placeholder="XXXX XXXX XXXX"
+  maxLength="14"
+  value={formData.aadhaar_number}
+  onChange={(e) => {
+    let value = e.target.value.replace(/\D/g, ""); // numbers only
+
+    // limit to 12 digits
+    value = value.substring(0, 12);
+
+    // add spaces after 4 digits
+    const formatted = value
+      .replace(/(\d{4})(?=\d)/g, "$1 ")
+      .trim();
+
+    setFormData((prev) => ({
+      ...prev,
+      aadhaar_number: formatted
+    }));
+  }}
+/>
+                            {errors.aadhaar_number && (
+  <small className="text-danger">{errors.aadhaar_number}</small>
+)}
+                          </div>
+                        </div>
+                        <div className="col-lg-4 col-md-6">
+                          <div className="mb-3">
+                            <label className="form-label">Pan Number</label>
+                            <input type="text" name="pan_number" placeholder="ABCDE1234F" onChange={handleChange} className="form-control" />
+                            
+                            {errors.pan_number && (
+  <small className="text-danger">{errors.pan_number}</small>
+)}
+                          </div>
+                        </div>
+                        <div className="col-lg-4 col-md-6">
+                        <div className="mb-3">
+                        <label className="form-label">Aadhaar Card</label> <small className="text-muted">Max file size: 2 MB</small>
+                        <input
+                        type="file"
+                        name="aadhaar_pdf"
+                        className="form-control"
+                        accept=".pdf,image/*"
+                        onChange={handleFileChange}
+                        />
+                        </div>
+                        </div>
+
+                        <div className="col-lg-4 col-md-6">
+                        <div className="mb-3">
+                        <label className="form-label">PAN Card</label> <small className="text-muted">Max file size: 2 MB</small>
+                        <input
+                        type="file"
+                        name="pan_pdf"
+                        className="form-control"
+                        accept=".pdf,image/*"
+                        onChange={handleFileChange}
+                        />
+                        </div>
+                        </div>
+                         <div className="col-lg-4 col-md-6">
+                        <div className="mb-3">
+                        <label className="form-label">Appointment order</label> <small className="text-muted">Max file size: 2 MB</small>
+                        <input
+                        type="file"
+                        name="appointment_order"
+                        className="form-control"
+                        accept=".pdf,image/*"
+                        onChange={handleFileChange}
+                        />
+                        </div>
                         </div>
                       </div>
                       {/* Editor */}
@@ -557,6 +828,7 @@ useEffect(() => {
                             type="text"
                             name="address"
                             className="form-control"
+                            placeholder="Enter address"
                             onChange={handleChange}
                              />
                           </div>
@@ -581,7 +853,7 @@ useEffect(() => {
                               options={states}
                               value={selectedState}
                               onChange={handleStateChange}
-                              placeholder="Choose"
+                              placeholder="Select State"
                               filter={false} />
                             
                           </div>
@@ -594,7 +866,7 @@ useEffect(() => {
                               options={cityOptions}
                               value={selectedCity}
                               onChange={(e) => setSelectedCity(e.value)}
-                              placeholder="Choose"
+                              placeholder="Select City"
                               filter={false} />
                             
                           </div>
@@ -635,24 +907,34 @@ useEffect(() => {
                             <label className="form-label">
                               Emergency Contact Number 
                             </label>
-                            <input 
-                            type="text"
-                            className="form-control"
-                            name="emergency_contact_number"
-                            onChange={handleChange}
-                             />
+                            <input
+  type="text"
+  name="emergency_contact_number"
+  placeholder="Enter emergency contact number"
+  className={`form-control ${
+    errors.emergency_contact_number ? "is-invalid" : ""
+  }`}
+  onChange={handleChange}
+/>
+
+{errors.emergency_contact_number && (
+  <small className="text-danger">
+    {errors.emergency_contact_number}
+  </small>
+)}
+                             
                           </div>
                         </div>
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">Relation</label>
-                            <input type="text" name="emergency_relation" className="form-control" onChange={handleChange} />
+                            <input type="text" name="emergency_relation" className="form-control"  placeholder="Enter relation (Father / Mother / Spouse / gardian)" onChange={handleChange} />
                           </div>
                         </div>
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">Name</label>
-                            <input type="text" className="form-control" name="emergency_relation_name" onChange={handleChange} />
+                            <input type="text" className="form-control" name="emergency_relation_name" placeholder="Enter emergency contact name" onChange={handleChange} />
                           </div>
                         </div>
                         
@@ -729,6 +1011,7 @@ useEffect(() => {
  type="text"
  name="pf_account_number"
  className="form-control"
+ placeholder="Enter PF Number"
  onChange={handleChange}
 />
 </div>
@@ -739,6 +1022,7 @@ useEffect(() => {
  type="text"
  name="esi_account_number"
  className="form-control"
+ placeholder="Enter PF Number"
  onChange={handleChange}
 />
 </div>
@@ -750,9 +1034,10 @@ useEffect(() => {
                               <span className="text-danger ms-1">*</span>
                             </label>
                             <input
-                            type="text"
+                            type="number"
                             name="esi_amount"
                             className="form-control"
+                            placeholder="Enter ESI Amount"
                             onChange={handleChange}
                             />
                           </div>
@@ -766,9 +1051,10 @@ useEffect(() => {
                               <span className="text-danger ms-1">*</span>
                             </label>
                             <input
-                            type="text"
+                            type="number"
                             name="pf_amount"
                             className="form-control"
+                            placeholder="Enter PF Amount"
                             onChange={handleChange}
                             />
                           </div>
@@ -810,68 +1096,36 @@ useEffect(() => {
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">Bank Name</label>
-                            <input type="text" name="bank_name" onChange={handleChange} className="form-control" />
+                            <input type="text" name="bank_name" onChange={handleChange} placeholder="Enter bank name" className="form-control" />
                           </div>
                         </div>
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">Account Number</label>
-                            <input type="text" name="account_number" onChange={handleChange} className="form-control" />
+                            <input type="text" name="account_number" onChange={handleChange} placeholder="Enter account number" className="form-control" />
                           </div>
                         </div>
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">IFSC</label>
-                            <input type="text" name="ifsc_code" onChange={handleChange} className="form-control" />
+                            <input type="text" name="ifsc_code" onChange={handleChange} placeholder="SBIN0001234" className="form-control" />
+                            {errors.ifsc_code && (
+  <small className="text-danger">{errors.ifsc_code}</small>
+)}
                           </div>
                         </div>
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">Branch</label>
-                            <input type="text" name="bank_branch" onChange={handleChange} className="form-control" />
+                            <input type="text" name="bank_branch" onChange={handleChange} placeholder="Enter branch name" className="form-control" />
                           </div>
                         </div>
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Aadhar Number</label>
-                            <input type="text" name="aadhaar_number" onChange={handleChange} className="form-control" />
-                          </div>
-                        </div>
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">pan Number</label>
-                            <input type="text" name="pan_number" onChange={handleChange} className="form-control" />
-                          </div>
-                        </div>
-                        <div className="col-lg-4 col-md-6">
-                        <div className="mb-3">
-                        <label className="form-label">Aadhaar Card</label>
-                        <input
-                        type="file"
-                        name="aadhaar_pdf"
-                        className="form-control"
-                        accept=".pdf,image/*"
-                        onChange={handleFileChange}
-                        />
-                        </div>
-                        </div>
+                        
+                        
 
                         <div className="col-lg-4 col-md-6">
                         <div className="mb-3">
-                        <label className="form-label">PAN Card</label>
-                        <input
-                        type="file"
-                        name="pan_pdf"
-                        className="form-control"
-                        accept=".pdf,image/*"
-                        onChange={handleFileChange}
-                        />
-                        </div>
-                        </div>
-
-                        <div className="col-lg-4 col-md-6">
-                        <div className="mb-3">
-                        <label className="form-label">Bank Passbook</label>
+                        <label className="form-label">Bank Passbook</label> <small className="text-muted">Max file size: 2 MB</small>
                         <input
                         type="file"
                         name="passbook_pdf"
@@ -881,18 +1135,7 @@ useEffect(() => {
                         />
                         </div>
                         </div>
-                        <div className="col-lg-4 col-md-6">
-                        <div className="mb-3">
-                        <label className="form-label">Appointment order</label>
-                        <input
-                        type="file"
-                        name="appointment_order"
-                        className="form-control"
-                        accept=".pdf,image/*"
-                        onChange={handleFileChange}
-                        />
-                        </div>
-                        </div>
+                       
                       </div>
                     </div>
                   </div>
@@ -902,9 +1145,13 @@ useEffect(() => {
             </div>
             {/* /product list */}
             <div className="text-end mb-3">
-              <button type="button" className="btn btn-secondary me-2">
-                Cancel
-              </button>
+              <button
+  type="button"
+  className="btn btn-secondary me-2"
+  onClick={() => navigate(route.employeelist)}
+>
+  Cancel
+</button>
               <button type="submit" className="btn btn-primary">
                 Add Employee
               </button>

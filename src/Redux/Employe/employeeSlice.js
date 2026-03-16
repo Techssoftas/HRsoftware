@@ -7,15 +7,18 @@ import Cookies from "js-cookie";
 // ---------------- GET EMPLOYEE LIST ----------------
 export const getEmployees = createAsyncThunk(
   "employees/getAll",
-  async ({ page = 1, rows = 10 } = {}, { rejectWithValue }) => {
+  async (
+    { page = 1, rows = 10, filters = {} } = {},
+    { rejectWithValue }
+  ) => {
     try {
-
       const token = Cookies.get("token") || Cookies.get("Token");
 
       const res = await axios.get(`${baseURL}/hr/employees/lists/`, {
         params: {
           page: page,
           page_size: rows,
+          ...filters
         },
         headers: { Authorization: `Token ${token}` },
       });

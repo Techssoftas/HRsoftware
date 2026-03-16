@@ -22,14 +22,18 @@ const Maintanancelist = () => {
   }, [dispatch]);
 
   const getDaysToGo = (date) => {
-    const startDate = new Date(date);
-    const oneYearDate = new Date(startDate);
-    oneYearDate.setFullYear(startDate.getFullYear() + 1);
-    const today = new Date();
-    const diffTime = oneYearDate - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
+  const renewalDate = new Date(date);
+  const today = new Date();
+
+  // remove time to avoid timezone issues
+  renewalDate.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+
+  const diffTime = renewalDate - today;
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  return diffDays;
+};
 
   return (
     <div>
@@ -77,7 +81,9 @@ const Maintanancelist = () => {
             <div className="tabs_container">
               <div className="tab_content active" data-tab="all">
                 <div className="row">
-                  {certificates?.map((item) => (
+                  {[...certificates]
+  ?.sort((a, b) => b.id - a.id)
+  .map((item) => (
                     <div className="col-sm-6 col-md-6 col-lg-3 col-xl-3 mb-4" key={item.id}>
                       <div className="product-info default-cover card position-relative h-100 shadow-sm border-0">
                         {/* Action buttons (Edit & Delete) at top right */}
