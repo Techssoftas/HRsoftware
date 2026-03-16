@@ -70,7 +70,7 @@ const EditMonthlySalary = () => {
           message: "Monthly Salary Updated Successfully",
         });
         setTimeout(() => {
-          navigate("/salary/monthly");
+          navigate("/salary/monthly/list");
         }, 2000);
       })
       .catch(() => {
@@ -95,8 +95,8 @@ const EditMonthlySalary = () => {
             </div>
             <ul className="table-top-head">
               <li>
-                <Link to="/salary/monthly/list" className="btn btn-primary">
-                  <i className="ti ti-arrow-left me-1"></i>
+                <Link to="/salary/monthly/list" className="btn btn-secondary">
+                  <i className="feather icon-arrow-left me-1"></i>
                   Back to List
                 </Link>
               </li>
@@ -107,8 +107,8 @@ const EditMonthlySalary = () => {
               <div className="card">
                 <div className="card-body">
                   <form onSubmit={handleSubmit}>
-                    {/* Employee Information Accordion */}
                     <div className="accordions-items-seperate" id="accordionExample">
+                      {/* Employee Information Accordion */}
                       <div className="accordion-item border mb-4">
                         <h2 className="accordion-header" id="headingOne">
                           <div
@@ -354,7 +354,14 @@ const EditMonthlySalary = () => {
                       </div>
                     </div>
 
-                    <div className="d-flex justify-content-end">
+                    <div className="d-flex justify-content-end mb-3">
+                      <button 
+                        type="button" 
+                        className="btn btn-secondary me-2" 
+                        onClick={() => navigate("/salary/monthly/list")}
+                      >
+                        Cancel
+                      </button>
                       <button type="submit" className="btn btn-primary" disabled={loading}>
                         {loading ? "Updating..." : "Update"}
                       </button>

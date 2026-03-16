@@ -25,7 +25,7 @@ const AddDailysalary = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
   const [selectedShift, setSelectedShift] = useState(null);
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState(new Date()); // Defaults to Present Day
   const [selectedOT, setSelectedOT] = useState(null);
   const [totalHours, setTotalHours] = useState("");
   const [totalHoursDecimal, setTotalHoursDecimal] = useState(0);
@@ -35,42 +35,43 @@ const AddDailysalary = () => {
     employee_name: "",
     designation_name: "",
     employee_id: "",
-    salary_type: "", // Loaded from employee data
+    salary_type: "", 
     base_salary: 0,
     standard_hours: "",
   });
 
-  // Helper: Detect if salary type is Monthly (Case-Insensitive)
   const isMonthly = formData.salary_type?.toLowerCase() === "monthly";
 
-  // Helper: Calculate days in the selected month
   const getDaysInMonth = (dateObj) => {
     return new Date(dateObj.getFullYear(), dateObj.getMonth() + 1, 0).getDate();
+  };
+
+  // Helper to format date as YYYY-MM-DD without timezone shifting
+  const formatDateForPayload = (dateObj) => {
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const day = String(dateObj.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   };
 
   const calculateTotal = useCallback(() => {
     const baseSalary = parseFloat(formData.base_salary) || 0;
 
     if (isMonthly) {
-      // Monthly Logic: Base Salary / Total Days in Month (28, 29, 30, or 31)
       const daysInMonth = getDaysInMonth(date);
       const calculatedDaily = baseSalary / daysInMonth;
-      
       setTotalDaySalary(calculatedDaily);
       setTotalHoursDecimal(0);
       setTotalHours("N/A");
     } else {
-      // Hourly Logic
       const shiftHours = parseFloat(formData.standard_hours) || 0;
       const otHours = parseFloat(selectedOT) || 0;
       const totalDecimal = shiftHours + otHours;
-      
       setTotalHoursDecimal(totalDecimal);
 
       const hours = Math.floor(totalDecimal);
       const minutes = Math.round((totalDecimal - hours) * 60);
       setTotalHours(`${hours}.${minutes.toString().padStart(2, "0")}`);
-
       setTotalDaySalary(totalDecimal * baseSalary);
     }
   }, [formData.standard_hours, formData.base_salary, isMonthly, selectedOT, date]);
@@ -79,13 +80,11 @@ const AddDailysalary = () => {
     calculateTotal();
   }, [calculateTotal]);
 
-  // Initial Data Fetch
   useEffect(() => {
     dispatch(getEmployees({ page: 1, rows: 100 }));
     dispatch(getShifts({ page: 1, rows: 100 }));
   }, [dispatch]);
 
-  // Handle Employee Selection Response
   useEffect(() => {
     if (employeeByEmployeeId?.results?.length > 0) {
       const emp = employeeByEmployeeId.results[0];
@@ -101,7 +100,6 @@ const AddDailysalary = () => {
     }
   }, [employeeByEmployeeId]);
 
-  // Handle Shift Selection Response
   useEffect(() => {
     if (shiftByValue?.results?.length > 0) {
       const shift = shiftByValue.results[0];
@@ -115,9 +113,10 @@ const AddDailysalary = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // This captures the 'date' state regardless of whether it was changed or is still the default present day
     const payload = {
       employee: selectedEmployeeId,
-      date: date.toISOString().split("T")[0],
+      date: formatDateForPayload(date), 
       worked_hours: isMonthly ? 0 : parseFloat(formData.standard_hours) || 0,
       shift_value: isMonthly ? 0 : parseFloat(formData.standard_hours) || 0,
       ot_hours: isMonthly ? 0 : parseFloat(selectedOT) || 0,
@@ -177,7 +176,6 @@ const AddDailysalary = () => {
 
         <form onSubmit={handleSubmit}>
           <div className="accordions-items-seperate" id="accordionExample">
-            {/* Section 1: Employee Information */}
             <div className="accordion-item border mb-4">
               <h2 className="accordion-header" id="headingOne">
                 <div className="accordion-button bg-white" data-bs-toggle="collapse" data-bs-target="#collapseOne">
@@ -229,7 +227,6 @@ const AddDailysalary = () => {
               </div>
             </div>
 
-            {/* Section 2: Day Salary Information */}
             <div className="accordion-item border mb-4">
               <div className="accordion-header" id="headingThree">
                 <div className="accordion-button bg-white" data-bs-toggle="collapse" data-bs-target="#collapseThree">
@@ -247,12 +244,15 @@ const AddDailysalary = () => {
                         <label className="form-label">Date</label>
                         <div className="input-groupicon calender-input">
                           <i className="feather icon-calendar info-img" />
-                          <CommonDatePicker value={date} onChange={setDate} className="w-100" />
+                          <CommonDatePicker 
+                             value={date} 
+                             onChange={(val) => setDate(new Date(val))} 
+                             className="w-100" 
+                          />
                         </div>
                       </div>
                     </div>
 
-                    {/* CONDITIONALLY RENDERED HOURLY FIELDS */}
                     {!isMonthly && (
                       <>
                         <div className="col-lg-4 col-md-6">
@@ -297,7 +297,6 @@ const AddDailysalary = () => {
                       </>
                     )}
 
-                    {/* ALWAYS VISIBLE SALARY CALCULATION */}
                     <div className="col-lg-4 col-md-6">
                       <div className="mb-3">
                         <label className="form-label">Total Day Salary</label>
@@ -310,7 +309,7 @@ const AddDailysalary = () => {
                         />
                         {isMonthly && (
                           <small className="text-primary">
-                            Based on {getDaysInMonth(date)} days in the selected month.
+                            Based on {getDaysInMonth(date)} days in selected month.
                           </small>
                         )}
                       </div>
@@ -321,16 +320,25 @@ const AddDailysalary = () => {
             </div>
           </div>
 
-          <div className="text-end mb-3">
-            <button type="button" className="btn btn-secondary me-2" onClick={() => navigate(-1)}>
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary" disabled={!selectedEmployeeId}>
-              Add Day Salary
-            </button>
-          </div>
+           <div className="text-end mb-3">
+              <button type="button" className="btn btn-secondary me-2" onClick={() => navigate("/salary/daily/list")}>
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-primary">
+                Add Day Salary
+              </button>
+            </div>
         </form>
       </div>
+        <div className="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3">
+                <p className="mb-0">2014 - 2025 © DreamsPOS. All Right Reserved</p>
+                <p>
+                  Designed &amp; Developed by{" "}
+                  <Link to="#" className="text-primary">
+                    Dreams
+                  </Link>
+                </p>
+              </div>
     </div>
   );
 };
