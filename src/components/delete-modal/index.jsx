@@ -7,8 +7,7 @@ import { deleteDesignation } from "../../Redux/Master/designationSlice";
 import { deleteEmployee } from "../../Redux/Employe/employeeSlice";
 import { deleteDailySalaryEntry } from "../../Redux/Salary/dailysalarySlice";
 import { deleteAdvanceSalary } from "../../Redux/Salary/advancesalarySlice";
-import { deleteMonthlySalaryEntry } from "../../Redux/Salary/monthlysalarySlice";
-
+import { deleteCertificate } from "../../Redux/Maintanance/certificateSlice";
 const DeleteModal = ({ selectedId, type, confirmDelete }) => {
   const dispatch = useDispatch();
 
@@ -33,8 +32,7 @@ const DeleteModal = ({ selectedId, type, confirmDelete }) => {
     else if (type === "employees") deleteAction = deleteEmployee(selectedId)
     else if (type === "dailySalaryEntries") deleteAction = deleteDailySalaryEntry(selectedId)
     else if (type === "advanceSalaries") deleteAction = deleteAdvanceSalary(selectedId)
-    else if (type === "monthlySalaryEntries") deleteAction = deleteMonthlySalaryEntry(selectedId)
-
+    else if (type === "certificates") deleteAction = deleteCertificate(selectedId)
     dispatch(deleteAction)
       .unwrap()
       .then(() => {

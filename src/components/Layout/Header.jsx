@@ -426,7 +426,7 @@ const Header = () => {
 
       <li className="nav-item">
         <Link
-          to="#"
+          to="/maintanance/list"
           className="nav-link"
           onClick={() => handleMenuClick("maintenance")}
           style={{
