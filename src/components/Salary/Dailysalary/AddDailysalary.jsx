@@ -39,6 +39,11 @@ const AddDailysalary = () => {
     base_salary: 0,
     standard_hours: "",
   });
+   const [appAlert, setAppAlert] = useState({
+    type: "",
+    message: "",
+    show: false
+  });
 
   const isMonthly = formData.salary_type?.toLowerCase() === "monthly";
 
@@ -111,27 +116,97 @@ const AddDailysalary = () => {
   }, [shiftByValue]);
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    // This captures the 'date' state regardless of whether it was changed or is still the default present day
-    const payload = {
-      employee: selectedEmployeeId,
-      date: formatDateForPayload(date), 
-      worked_hours: isMonthly ? 0 : parseFloat(formData.standard_hours) || 0,
-      shift_value: isMonthly ? 0 : parseFloat(formData.standard_hours) || 0,
-      ot_hours: isMonthly ? 0 : parseFloat(selectedOT) || 0,
-      total_hours: totalHoursDecimal,
-      amount_earned: totalDaySalary.toFixed(2),
-    };
+  // ✅ Employee
+  if (!selectedEmployeeId) {
+    setAppAlert({
+      type: "danger",
+      message: "Employee is required",
+      show: true
+    });
+    return;
+  }
 
-    dispatch(createDailySalaryEntry(payload))
-      .unwrap()
-      .then(() => {
-        setTimeout(() => {
-          navigate("/salary/daily/list");
-        }, 1500);
-      });
+  // ✅ Date (both)
+  if (!date || isNaN(new Date(date).getTime())) {
+    setAppAlert({
+      type: "danger",
+      message: "Date is required",
+      show: true
+    });
+    return;
+  }
+
+  // ✅ Shift (only Daily)
+  if (!isMonthly && !selectedShift) {
+    setAppAlert({
+      type: "danger",
+      message: "Shift is required",
+      show: true
+    });
+    return;
+  }
+
+  // ✅ Total Hours (only Daily)
+  if (!isMonthly && (!totalHoursDecimal || totalHoursDecimal <= 0)) {
+    setAppAlert({
+      type: "danger",
+      message: "Total hours is required",
+      show: true
+    });
+    return;
+  }
+
+  // ✅ Total Day Salary (both Daily + Monthly)
+  if (!totalDaySalary || totalDaySalary <= 0) {
+    setAppAlert({
+      type: "danger",
+      message: "Total day salary is required",
+      show: true
+    });
+    return;
+  }
+
+  // ✅ Payload
+  const payload = {
+    employee: selectedEmployeeId,
+    date: formatDateForPayload(date),
+    worked_hours: totalHoursDecimal,
+    shift_value: isMonthly ? 0 : parseFloat(selectedShift) || 0,
+    ot_hours: isMonthly ? 0 : parseFloat(selectedOT) || 0,
+    total_hours: totalHoursDecimal,
+    amount_earned: totalDaySalary.toFixed(2),
   };
+
+  dispatch(createDailySalaryEntry(payload))
+    .unwrap()
+    .then(() => {
+      setAppAlert({
+        type: "success",
+        message: "Daily Salary Added Successfully!",
+        show: true
+      });
+
+      setTimeout(() => {
+        navigate("/salary/daily/list");
+      }, 1500);
+    })
+    .catch((error) => {
+  let errorMessage = "Error adding salary";
+
+  // ✅ Handle duplicate (employee + date already exists)
+  if (error?.non_field_errors?.length > 0) {
+    errorMessage = `Salary already added for ${formData.employee_name} on ${formatDateForPayload(date)}`;
+  }
+
+  setAppAlert({
+    type: "danger",
+    message: errorMessage,
+    show: true
+  });
+});
+};
 
   const employeeOptions = employees?.results?.map((emp) => ({
     label: emp.employee_id,
@@ -152,8 +227,34 @@ const AddDailysalary = () => {
     { label: "3 Hour", value: "3" },
     { label: "3.30 Minutes", value: "3.5" }
   ];
+  useEffect(() => {
+  setSelectedEmployee(null);
+  setSelectedEmployeeId(null);
+  setSelectedShift(null);
+  setSelectedOT(null);
+  setTotalHours("");
+  setTotalHoursDecimal(0);
+  setTotalDaySalary(0);
+
+  setFormData({
+    employee_name: "",
+    designation_name: "",
+    employee_id: "",
+    salary_type: "",
+    base_salary: 0,
+    standard_hours: "",
+  });
+}, []);
 
   return (
+    <div>
+      {appAlert.show && (
+  <AppAlert
+    type={appAlert.type}
+    message={appAlert.message}
+    onClose={() => setAppAlert({ ...appAlert, show: false })}
+  />
+)}
     <div className="page-wrapper" id="employee-modal">
       <div className="content">
         <div className="page-header">
@@ -212,6 +313,12 @@ const AddDailysalary = () => {
                     </div>
                     <div className="col-lg-4 col-md-6">
                       <div className="mb-3">
+                        <label className="form-label">Designation</label>
+                        <input type="text" className="form-control" value={formData.designation_name} readOnly />
+                      </div>
+                    </div>
+                    <div className="col-lg-4 col-md-6">
+                      <div className="mb-3">
                         <label className="form-label">Salary Type</label>
                         <input type="text" className="form-control" value={formData.salary_type} readOnly />
                       </div>
@@ -266,7 +373,7 @@ const AddDailysalary = () => {
                                 setSelectedShift(e.value);
                                 dispatch(getShiftByValue(e.value));
                               }}
-                              placeholder="Choose Shift"
+                              placeholder="Select Shift"
                             />
                           </div>
                         </div>
@@ -284,7 +391,7 @@ const AddDailysalary = () => {
                               options={otOptions}
                               value={selectedOT}
                               onChange={(e) => setSelectedOT(e.value)}
-                              placeholder="Choose OT"
+                              placeholder="Select OT"
                             />
                           </div>
                         </div>
@@ -339,6 +446,7 @@ const AddDailysalary = () => {
                   </Link>
                 </p>
               </div>
+    </div>
     </div>
   );
 };

@@ -235,6 +235,8 @@ export const all_routes = {
   advancesalarylist: "/salary/advance/list",
   advancesalaryadd: "/salary/advance/add",
   addcertificate: "/maintanance/add",
+  monthlysalarylist: "/salary/monthly/list",
+  
   incomelist: "/income",
   incomecategory: "/income-category",
   product: "/products",

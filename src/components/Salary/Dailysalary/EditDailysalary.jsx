@@ -1,49 +1,174 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { updateDailySalaryEntry, filterDailySalaryEntries } from "../../../Redux/Salary/dailysalarySlice";
+import {
+  updateDailySalaryEntry,
+  getDailySalaryById,          // <-- make sure this thunk exists in your slice
+} from "../../../Redux/Salary/dailysalarySlice";
 import { getEmployeeByEmployeeId } from "../../../Redux/Employe/employeeSlice";
 import { getShiftByValue, getShifts } from "../../../Redux/Master/shiftSlice";
 import { getEmployees } from "../../../Redux/Employe/employeeSlice";
+import AppAlert from "../../AppAlert";
 import { all_routes } from "../../../routes/all_routes";
 import RefreshIcon from "../../../components/tooltip-content/refresh";
 import CommonDatePicker from "../../../components/date-picker/common-date-picker";
 import CommonSelect from "../../../components/select/common-select";
 
 const EditDailysalary = () => {
-  const { id } = useParams(); // daily salary entry ID from URL
+  const { id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const route = all_routes;
 
   // Redux state
-  const { dailySalaryEntries } = useSelector((state) => state.dailySalary);
+  const { dailySalaryById, loading: salaryLoading } = useSelector(
+    (state) => state.dailySalary
+  );
   const { employeeByEmployeeId } = useSelector((state) => state.employees);
   const { employees } = useSelector((state) => state.employees);
-  const { shiftByValue } = useSelector((state) => state.shifts);
-  const { shifts } = useSelector((state) => state.shifts);
+  const { shiftByValue, shifts } = useSelector((state) => state.shifts);
 
-  // Local state for form data
-  const [formData, setFormData] = useState({
-    employee_name: "",
-    employee_id_display: "",
-    designation_name: "",
-    base_salary: "",
-    worked_hours: "",          // shift hours (readOnly)
-    date: null,
-  });
-
-  // Dropdown selections
+  // Local state – exactly like Add page
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
   const [selectedShift, setSelectedShift] = useState(null);
-  const [selectedOT, setSelectedOT] = useState(null);
   const [date, setDate] = useState(null);
-
-  // Calculated fields
+  const [selectedOT, setSelectedOT] = useState(null);
+  const [totalHours, setTotalHours] = useState("");
   const [totalHoursDecimal, setTotalHoursDecimal] = useState(0);
-  const [totalHoursDisplay, setTotalHoursDisplay] = useState("");
   const [totalDaySalary, setTotalDaySalary] = useState(0);
 
-  // Options for selects
+  const [formData, setFormData] = useState({
+    employee_name: "",
+    designation_name: "",
+    employee_id: "",          // employee ID string (for display)
+    salary_type: "",
+    base_salary: 0,
+    standard_hours: "",
+  });
+
+  const [appAlert, setAppAlert] = useState({
+    type: "",
+    message: "",
+    show: false,
+  });
+
+  const isMonthly = formData.salary_type?.toLowerCase() === "monthly";
+
+  // Helper functions (same as Add)
+  const getDaysInMonth = (dateObj) => {
+    return new Date(dateObj.getFullYear(), dateObj.getMonth() + 1, 0).getDate();
+  };
+
+  const formatDateForPayload = (dateObj) => {
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const day = String(dateObj.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  // Calculate total hours and salary (same as Add)
+  const calculateTotal = useCallback(() => {
+    const baseSalary = parseFloat(formData.base_salary) || 0;
+
+    if (isMonthly) {
+      if (date) {
+        const daysInMonth = getDaysInMonth(date);
+        const calculatedDaily = baseSalary / daysInMonth;
+        setTotalDaySalary(calculatedDaily);
+      } else {
+        setTotalDaySalary(0);
+      }
+      setTotalHoursDecimal(0);
+      setTotalHours("N/A");
+    } else {
+      const shiftHours = parseFloat(formData.standard_hours) || 0;
+      const otHours = parseFloat(selectedOT) || 0;
+      const totalDecimal = shiftHours + otHours;
+      setTotalHoursDecimal(totalDecimal);
+
+      const hours = Math.floor(totalDecimal);
+      const minutes = Math.round((totalDecimal - hours) * 60);
+      setTotalHours(`${hours}.${minutes.toString().padStart(2, "0")}`);
+      setTotalDaySalary(totalDecimal * baseSalary);
+    }
+  }, [formData.standard_hours, formData.base_salary, isMonthly, selectedOT, date]);
+
+  useEffect(() => {
+    calculateTotal();
+  }, [calculateTotal]);
+
+  // Fetch shifts and employees on mount (for dropdowns)
+  useEffect(() => {
+    dispatch(getShifts({ page: 1, rows: 100 }));
+    dispatch(getEmployees({ page: 1, rows: 100 }));
+  }, [dispatch]);
+
+  // Fetch the daily salary entry by ID
+  useEffect(() => {
+    if (id) {
+      dispatch(getDailySalaryById(id))
+        .unwrap()
+        .then((entry) => {
+          // Populate local state from the fetched entry
+          setSelectedEmployeeId(entry.employee);
+          setSelectedShift(entry.shift_value);
+          setSelectedOT(entry.ot_hours);
+          setDate(new Date(entry.date));
+          setTotalHours(entry.total_hours);
+          setTotalDaySalary(parseFloat(entry.amount_earned));
+
+          // Set basic employee display info
+          setFormData((prev) => ({
+            ...prev,
+            employee_name: entry.employee_name,
+            employee_id: entry.employee_id_display,
+          }));
+
+          // Fetch employee details to get base salary, salary type, designation
+          if (entry.employee) {
+            dispatch(getEmployeeByEmployeeId(entry.employee));
+          }
+
+          // If shift exists, fetch its details to populate standard_hours
+          if (entry.shift_value) {
+            dispatch(getShiftByValue(entry.shift_value));
+          }
+        })
+        .catch((error) => {
+          setAppAlert({
+            type: "danger",
+            message: error?.message || "Failed to load salary entry",
+            show: true,
+          });
+        });
+    }
+  }, [id, dispatch]);
+
+  // Update formData when employee details are fetched
+  useEffect(() => {
+    if (employeeByEmployeeId?.results?.length > 0) {
+      const emp = employeeByEmployeeId.results[0];
+      setFormData((prev) => ({
+        ...prev,
+        designation_name: emp.designation_name,
+        salary_type: emp.salary_type,
+        base_salary: emp.base_salary,
+      }));
+    }
+  }, [employeeByEmployeeId]);
+
+  // Update standard_hours when shift changes (including initial fetch)
+  useEffect(() => {
+    if (shiftByValue?.results?.length > 0) {
+      const shift = shiftByValue.results[0];
+      setFormData((prev) => ({
+        ...prev,
+        standard_hours: shift.standard_hours,
+      }));
+    }
+  }, [shiftByValue]);
+
+  // Options for selects (same as Add)
   const shiftOptions =
     shifts?.results?.map((item) => ({
       label: item.shift_value,
@@ -60,147 +185,116 @@ const EditDailysalary = () => {
     { label: "3.30 Minutes", value: "3.5" },
   ];
 
-  // Helper: format date for API
-  const formatDate = (date) => {
-    if (!date) return null;
-    if (date instanceof Date) {
-      return date.toISOString().split("T")[0];
-    }
-    return date;
-  };
-
-  // Calculate total hours and salary
-  const calculateTotal = useCallback(() => {
-    const shiftHours = parseFloat(formData.worked_hours) || 0;
-    const otHours = parseFloat(selectedOT) || 0;
-    const totalDecimal = shiftHours + otHours;
-    setTotalHoursDecimal(totalDecimal);
-
-    // Format as "hours.minutes" (e.g., 8.30 for 8h30m)
-    const hours = Math.floor(totalDecimal);
-    const minutes = Math.round((totalDecimal - hours) * 60);
-    const formatted = `${hours}.${minutes.toString().padStart(2, "0")}`;
-    setTotalHoursDisplay(formatted);
-
-    const baseSalary = parseFloat(formData.base_salary) || 0;
-    const salary = totalDecimal * baseSalary;
-    setTotalDaySalary(salary);
-  }, [formData.worked_hours, formData.base_salary, selectedOT]);
-
-  useEffect(() => {
-    calculateTotal();
-  }, [calculateTotal]);
-
-  // Fetch shifts and employees on mount
-  useEffect(() => {
-    dispatch(getShifts({ page: 1, rows: 100 }));
-    dispatch(getEmployees({ page: 1, rows: 100 }));
-  }, [dispatch]);
-
-  // Find the existing daily salary entry from Redux or fetch it
-  useEffect(() => {
-    const entry = dailySalaryEntries?.results?.find((item) => item.id === Number(id));
-    if (entry) {
-      // Populate form with existing data
-      setFormData((prev) => ({
-        ...prev,
-        employee_name: entry.employee_name,
-        employee_id_display: entry.employee_id_display,
-        worked_hours: entry.worked_hours,   // shift hours
-        base_salary: "",                     // will be fetched from employee
-        date: new Date(entry.date),
-      }));
-      setSelectedShift(entry.shift_value);
-      setSelectedOT(entry.ot_hours);
-      setDate(new Date(entry.date));
-      setTotalHoursDisplay(entry.total_hours);
-      setTotalDaySalary(parseFloat(entry.amount_earned));
-
-      // Fetch employee details to get base salary
-      if (entry.employee) {
-        dispatch(getEmployeeByEmployeeId(entry.employee));
-      }
-    } else {
-      // Fetch the specific entry using filter (if not in list)
-      dispatch(filterDailySalaryEntries({ id }))
-        .unwrap()
-        .then((res) => {
-          if (res.results?.length > 0) {
-            const fetched = res.results[0];
-            setFormData((prev) => ({
-              ...prev,
-              employee_name: fetched.employee_name,
-              employee_id_display: fetched.employee_id_display,
-              worked_hours: fetched.worked_hours,
-              base_salary: "",
-              date: new Date(fetched.date),
-            }));
-            setSelectedShift(fetched.shift_value);
-            setSelectedOT(fetched.ot_hours);
-            setDate(new Date(fetched.date));
-            setTotalHoursDisplay(fetched.total_hours);
-            setTotalDaySalary(parseFloat(fetched.amount_earned));
-
-            if (fetched.employee) {
-              dispatch(getEmployeeByEmployeeId(fetched.employee));
-            }
-          }
-        })
-        .catch((err) => console.error("Failed to fetch daily salary entry", err));
-    }
-  }, [id, dailySalaryEntries, dispatch]);
-
-  // Update base salary when employee details are fetched
-  useEffect(() => {
-    if (employeeByEmployeeId?.results?.length > 0) {
-      const emp = employeeByEmployeeId.results[0];
-      setFormData((prev) => ({
-        ...prev,
-        base_salary: emp.base_salary,
-        designation_name: emp.designation_name,
-      }));
-    }
-  }, [employeeByEmployeeId]);
-
-  // Update worked_hours when shift changes
-  useEffect(() => {
-    if (shiftByValue?.results?.length > 0) {
-      const shift = shiftByValue.results[0];
-      setFormData((prev) => ({
-        ...prev,
-        worked_hours: shift.standard_hours,
-      }));
-    }
-  }, [shiftByValue]);
-
-  // Handle form submission
+  // Handle form submission with validations (same as Add)
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Prepare payload exactly as required
+    // Employee
+    if (!selectedEmployeeId) {
+      setAppAlert({
+        type: "danger",
+        message: "Employee is required",
+        show: true,
+      });
+      return;
+    }
+
+    // Date
+    if (!date || isNaN(new Date(date).getTime())) {
+      setAppAlert({
+        type: "danger",
+        message: "Date is required",
+        show: true,
+      });
+      return;
+    }
+
+    // Shift (only Daily)
+    if (!isMonthly && !selectedShift) {
+      setAppAlert({
+        type: "danger",
+        message: "Shift is required",
+        show: true,
+      });
+      return;
+    }
+
+    // Total Hours (only Daily)
+    if (!isMonthly && (!totalHoursDecimal || totalHoursDecimal <= 0)) {
+      setAppAlert({
+        type: "danger",
+        message: "Total hours is required",
+        show: true,
+      });
+      return;
+    }
+
+    // Total Day Salary
+    if (!totalDaySalary || totalDaySalary <= 0) {
+      setAppAlert({
+        type: "danger",
+        message: "Total day salary is required",
+        show: true,
+      });
+      return;
+    }
+
+    // Prepare payload – only updatable fields (employee and date stay the same)
     const payload = {
-      shift_value: selectedShift,
-      ot_hours: selectedOT,
-      worked_hours: formData.worked_hours,          // from shift
-      total_hours: totalHoursDecimal.toFixed(2),    // send with 2 decimals
+      shift_value: isMonthly ? 0 : parseFloat(selectedShift) || 0,
+      ot_hours: isMonthly ? 0 : parseFloat(selectedOT) || 0,
+      worked_hours: isMonthly ? 0 : parseFloat(formData.standard_hours) || 0,
+      total_hours: isMonthly ? 0 : totalHoursDecimal,
       amount_earned: totalDaySalary.toFixed(2),
     };
 
     dispatch(updateDailySalaryEntry({ id, data: payload }))
       .unwrap()
       .then(() => {
+        setAppAlert({
+          type: "success",
+          message: "Daily Salary Updated Successfully!",
+          show: true,
+        });
         setTimeout(() => {
           navigate("/salary/daily/list");
         }, 1500);
       })
-      .catch((err) => {
-        console.error("Update failed:", err);
-        // Optionally show error message to user
+      .catch((error) => {
+        let errorMessage = "Error updating salary";
+        if (error?.non_field_errors?.length > 0) {
+          errorMessage = `Salary already exists for ${formData.employee_name} on ${formatDateForPayload(date)}`;
+        }
+        setAppAlert({
+          type: "danger",
+          message: errorMessage,
+          show: true,
+        });
       });
   };
 
+  // Show loading state while fetching
+  if (salaryLoading && !dailySalaryById) {
+    return (
+      <div className="page-wrapper">
+        <div className="content d-flex justify-content-center align-items-center">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
+      {appAlert.show && (
+        <AppAlert
+          type={appAlert.type}
+          message={appAlert.message}
+          onClose={() => setAppAlert({ ...appAlert, show: false })}
+        />
+      )}
       <div className="page-wrapper" id="employee-modal">
         <div className="content">
           <div className="page-header">
@@ -222,79 +316,84 @@ const EditDailysalary = () => {
           </div>
 
           <form onSubmit={handleSubmit}>
-            {/* Employee Information Accordion */}
             <div className="accordions-items-seperate" id="accordionExample">
+              {/* Employee Information Accordion */}
               <div className="accordion-item border mb-4">
                 <h2 className="accordion-header" id="headingOne">
                   <div
                     className="accordion-button bg-white"
                     data-bs-toggle="collapse"
                     data-bs-target="#collapseOne"
-                    aria-controls="collapseOne"
                   >
-                    <div className="d-flex align-items-center justify-content-between flex-fill">
-                      <h5 className="d-inline-flex align-items-center">
-                        <i className="ti ti-users text-primary me-2" />
-                        <span>Employee Information</span>
-                      </h5>
-                    </div>
+                    <h5 className="d-inline-flex align-items-center">
+                      <i className="ti ti-users text-primary me-2" />
+                      <span>Employee Information</span>
+                    </h5>
                   </div>
                 </h2>
                 <div
                   id="collapseOne"
                   className="accordion-collapse collapse show"
-                  aria-labelledby="headingOne"
                   data-bs-parent="#accordionExample"
                 >
                   <div className="accordion-body border-top">
-                    <div className="new-employee-field">
-                      <div className="row">
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Employee ID</label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              value={formData.employee_id_display}
-                              readOnly
-                            />
-                          </div>
+                    <div className="row">
+                      <div className="col-lg-4 col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Employee ID</label>
+                          {/* Read‑only input instead of select */}
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={formData.employee_id}
+                            readOnly
+                          />
                         </div>
-
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Employee Name</label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              value={formData.employee_name}
-                              readOnly
-                            />
-                          </div>
+                      </div>
+                      <div className="col-lg-4 col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Employee Name</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={formData.employee_name}
+                            readOnly
+                          />
                         </div>
-
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Designation</label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              value={formData.designation_name}
-                              readOnly
-                            />
-                          </div>
+                      </div>
+                      <div className="col-lg-4 col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Designation</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={formData.designation_name}
+                            readOnly
+                          />
                         </div>
-
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Base Salary (per hour)</label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              value={formData.base_salary}
-                              readOnly
-                            />
-                          </div>
+                      </div>
+                      <div className="col-lg-4 col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Salary Type</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={formData.salary_type}
+                            readOnly
+                          />
+                        </div>
+                      </div>
+                      <div className="col-lg-4 col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">
+                            Base Salary ({isMonthly ? "Per Month" : "Per Hour"})
+                          </label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={formData.base_salary}
+                            readOnly
+                          />
                         </div>
                       </div>
                     </div>
@@ -309,105 +408,104 @@ const EditDailysalary = () => {
                     className="accordion-button bg-white"
                     data-bs-toggle="collapse"
                     data-bs-target="#collapseThree"
-                    aria-controls="collapseThree"
                   >
-                    <div className="d-flex align-items-center justify-content-between flex-fill">
-                      <h5 className="d-inline-flex align-items-center">
-                        <i className="feather icon-map-pin feather-edit text-primary me-2" />
-                        <span>Day Salary Information</span>
-                      </h5>
-                    </div>
+                    <h5 className="d-inline-flex align-items-center">
+                      <i className="feather icon-map-pin text-primary me-2" />
+                      <span>Day Salary Information</span>
+                    </h5>
                   </div>
                 </div>
                 <div
                   id="collapseThree"
                   className="accordion-collapse collapse show"
-                  aria-labelledby="headingThree"
                   data-bs-parent="#accordionExample"
                 >
                   <div className="accordion-body border-top">
-                    <div className="other-info">
-                      <div className="row">
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Date</label>
-                            <div className="input-groupicon calender-input">
-                              <i className="feather icon-calendar info-img" />
-                              <CommonDatePicker
-                                value={date}
-                                onChange={setDate}
+                    <div className="row">
+                      <div className="col-lg-4 col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Date</label>
+                          <div className="input-groupicon calender-input">
+                            <i className="feather icon-calendar info-img" />
+                            <CommonDatePicker
+                              value={date}
+                              onChange={(val) => setDate(new Date(val))}
+                              className="w-100"
+                              disabled // Date cannot be changed
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {!isMonthly && (
+                        <>
+                          <div className="col-lg-4 col-md-6">
+                            <div className="mb-3">
+                              <label className="form-label">Shift</label>
+                              <CommonSelect
                                 className="w-100"
-                                disabled // make readOnly
+                                options={shiftOptions}
+                                value={selectedShift}
+                                onChange={(e) => {
+                                  setSelectedShift(e.value);
+                                  dispatch(getShiftByValue(e.value));
+                                }}
+                                placeholder="Select Shift"
                               />
                             </div>
                           </div>
-                        </div>
-
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Shift</label>
-                            <CommonSelect
-                              className="w-100"
-                              options={shiftOptions}
-                              value={selectedShift}
-                              onChange={(e) => {
-                                setSelectedShift(e.value);
-                                dispatch(getShiftByValue(e.value));
-                              }}
-                              placeholder="Choose Shift"
-                              filter={false}
-                            />
+                          <div className="col-lg-4 col-md-6">
+                            <div className="mb-3">
+                              <label className="form-label">Shift Hours</label>
+                              <input
+                                type="text"
+                                className="form-control"
+                                value={formData.standard_hours}
+                                readOnly
+                              />
+                            </div>
                           </div>
-                        </div>
-
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Shift Hours</label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              value={formData.worked_hours}
-                              readOnly
-                            />
+                          <div className="col-lg-4 col-md-6">
+                            <div className="mb-3">
+                              <label className="form-label">OT</label>
+                              <CommonSelect
+                                className="w-100"
+                                options={otOptions}
+                                value={selectedOT}
+                                onChange={(e) => setSelectedOT(e.value)}
+                                placeholder="Select OT"
+                              />
+                            </div>
                           </div>
-                        </div>
-
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">OT</label>
-                            <CommonSelect
-                              className="w-100"
-                              options={otOptions}
-                              value={selectedOT}
-                              onChange={(e) => setSelectedOT(e.value)}
-                              placeholder="Choose OT"
-                              filter={false}
-                            />
+                          <div className="col-lg-4 col-md-6">
+                            <div className="mb-3">
+                              <label className="form-label">Total Hours</label>
+                              <input
+                                type="text"
+                                className="form-control"
+                                value={totalHours}
+                                readOnly
+                              />
+                            </div>
                           </div>
-                        </div>
+                        </>
+                      )}
 
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Total Hours</label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              value={totalHoursDisplay}
-                              readOnly
-                            />
-                          </div>
-                        </div>
-
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">Total Day Salary</label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              value={totalDaySalary.toFixed(2)}
-                              readOnly
-                            />
-                          </div>
+                      <div className="col-lg-4 col-md-6">
+                        <div className="mb-3">
+                          <label className="form-label">Total Day Salary</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            style={{ backgroundColor: "#f8f9fa", fontWeight: "bold" }}
+                            value={totalDaySalary.toFixed(2)}
+                            readOnly
+                          />
+                          {isMonthly && date && (
+                            <small className="text-primary">
+                              Based on {getDaysInMonth(date)} days in selected month.
+                            </small>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -416,9 +514,12 @@ const EditDailysalary = () => {
               </div>
             </div>
 
-            {/* Form Actions */}
             <div className="text-end mb-3">
-              <button type="button" className="btn btn-secondary me-2" onClick={() => navigate("/salary/daily/list")}>
+              <button
+                type="button"
+                className="btn btn-secondary me-2"
+                onClick={() => navigate("/salary/daily/list")}
+              >
                 Cancel
               </button>
               <button type="submit" className="btn btn-primary">
@@ -428,7 +529,6 @@ const EditDailysalary = () => {
           </form>
         </div>
 
-        {/* Footer */}
         <div className="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3">
           <p className="mb-0">2014 - 2025 © DreamsPOS. All Right Reserved</p>
           <p>

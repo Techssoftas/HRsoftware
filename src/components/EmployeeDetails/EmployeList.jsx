@@ -326,7 +326,7 @@ const EmployeesList = () => {
               </ul>
               <Link to="/employee/add" className="btn btn-primary">
                 <i className="ti ti-circle-plus me-1"></i>
-                Create Employee
+                Add Employee
               </Link>
             </div>
           </div>

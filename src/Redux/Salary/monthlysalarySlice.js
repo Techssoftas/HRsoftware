@@ -7,17 +7,19 @@ import Cookies from "js-cookie";
 // ---------------- GET MONTHLY SALARY LIST ----------------
 export const getMonthlySalaryEntries = createAsyncThunk(
   "monthlySalary/getAll",
-  async ({ page = 1, rows = 10 } = {}, { rejectWithValue }) => {
+  async ({ page = 1, rows = 10, filters = {} } = {}, { rejectWithValue }) => {
     try {
 
       const token = Cookies.get("token") || Cookies.get("Token");
 
+      const params = {
+        page: page,
+        page_size: rows,
+        ...filters, // Spread filters object to include all filter parameters
+      };
+
       const res = await axios.get(`${baseURL}/hr/monthly-summaries/`, {
-        params: {
-          page: page,
-          page_size: rows,
-          is_paid: false,
-        },
+        params: params,
         headers: { Authorization: `Token ${token}` },
       });   
 

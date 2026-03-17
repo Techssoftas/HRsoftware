@@ -1,5 +1,5 @@
 import { PlusCircle } from "react-feather";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import PrimeDataTable from "../../data-table/index.jsx";
@@ -7,26 +7,159 @@ import { all_routes } from "../../../routes/all_routes.jsx";
 import TooltipIcons from "../../tooltip-content/tooltipIcons.jsx";
 import RefreshIcon from "../../tooltip-content/refresh.jsx";
 import { getMonthlySalaryEntries } from "../../../Redux/Salary/monthlysalarySlice.js";
+import { getDesignations } from "../../../Redux/Master/designationSlice.js";
 import DeleteModal from "../../delete-modal";
+import CommonDatePicker from "../../../components/date-picker/common-date-picker.jsx";
+import CommonSelect from "../../../components/select/common-select.jsx";
 
 const MonthlySalaryList = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { monthlySalaryEntries, loading } = useSelector((state) => state.monthlySalary);   
+  const { monthlySalaryEntries, loading } = useSelector((state) => state.monthlySalary);
+  const { designations } = useSelector((state) => state.designations);
   const dataSource = [...(monthlySalaryEntries?.results || [])].sort(
-  (a, b) => b.id - a.id
-);
+    (a, b) => b.id - a.id
+  );
 
   // PAGINATION
   const [rows, setRows] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedId, setSelectedId] = useState(null);
 
-  // LOAD DATA ON MOUNT
+  // FILTERS
+  const [filters, setFilters] = useState({
+    is_paid: "",
+    employee_id: "",
+    employee_name: "",
+    designation_id: "",
+    date_from: "",
+    date_to: ""
+  });
+
+  // State for all distinct employee IDs and names
+  const [allEmployeeIds, setAllEmployeeIds] = useState([]);
+  const [allEmployeeNames, setAllEmployeeNames] = useState([]);
+  const [loadingEmployeeIds, setLoadingEmployeeIds] = useState(false);
+  const [loadingEmployeeNames, setLoadingEmployeeNames] = useState(false);
+
+  // Load designations on mount
   useEffect(() => {
-  dispatch(getMonthlySalaryEntries({ page: currentPage, rows }));
-}, [dispatch, currentPage, rows]);
+    dispatch(getDesignations({ page: 1, rows: 50 }));
+  }, [dispatch]);
+
+  // Fetch all employee IDs once on component mount
+  useEffect(() => {
+    const fetchAllEmployeeIds = async () => {
+      setLoadingEmployeeIds(true);
+      try {
+        const result = await dispatch(
+          getMonthlySalaryEntries({ page: 1, rows: 1000, filters: {} })
+        ).unwrap();
+        const employeeIds = result.results
+          .map((entry) => entry.employee_id_display)
+          .filter((id) => id && id.trim() !== "");
+        const uniqueEmployeeIds = [...new Set(employeeIds)].sort((a, b) =>
+          a.localeCompare(b)
+        );
+        setAllEmployeeIds(uniqueEmployeeIds);
+      } catch (error) {
+        console.error("Failed to fetch employee IDs", error);
+      } finally {
+        setLoadingEmployeeIds(false);
+      }
+    };
+    fetchAllEmployeeIds();
+  }, [dispatch]);
+
+  // Fetch all employee names once on component mount
+  useEffect(() => {
+    const fetchAllEmployeeNames = async () => {
+      setLoadingEmployeeNames(true);
+      try {
+        const result = await dispatch(
+          getMonthlySalaryEntries({ page: 1, rows: 1000, filters: {} })
+        ).unwrap();
+        const employeeNames = result.results
+          .map((entry) => entry.employee_name)
+          .filter((name) => name && name.trim() !== "");
+        const uniqueEmployeeNames = [...new Set(employeeNames)].sort((a, b) =>
+          a.localeCompare(b)
+        );
+        setAllEmployeeNames(uniqueEmployeeNames);
+      } catch (error) {
+        console.error("Failed to fetch employee names", error);
+      } finally {
+        setLoadingEmployeeNames(false);
+      }
+    };
+    fetchAllEmployeeNames();
+  }, [dispatch]);
+
+  // LOAD DATA ON MOUNT AND WHEN FILTERS CHANGE
+  useEffect(() => {
+    dispatch(getMonthlySalaryEntries({ page: currentPage, rows, filters }));
+  }, [dispatch, currentPage, rows, filters]);
+
+  // Handle filter changes from input components
+  const handleFilterChange = useCallback((field, value) => {
+    setFilters((prev) => ({
+      ...prev,
+      [field]: value
+    }));
+    setCurrentPage(1); // reset to first page when filtering
+  }, []);
+
+  // Handle date picker change (format as YYYY-MM-DD)
+  const handleDateChange = useCallback((field, date) => {
+    const formattedDate = date ? date.toISOString().split("T")[0] : "";
+    handleFilterChange(field, formattedDate);
+  }, [handleFilterChange]);
+
+  // Clear all filters
+  const clearFilters = useCallback(() => {
+    setFilters({
+      is_paid: "",
+      employee_id: "",
+      employee_name: "",
+      designation_id: "",
+      date_from: "",
+      date_to: ""
+    });
+    setCurrentPage(1);
+  }, []);
+
+  // Build options for designation dropdown, including "All" option
+  const designationOptions = [
+    { label: "All", value: "" },
+    ...(designations?.results?.map((item) => ({
+      label: item.name,
+      value: String(item.id)
+    })) || [])
+  ];
+
+  // Build options for employee ID dropdown
+  const employeeIdOptions = useMemo(() => {
+    return [
+      { label: "All", value: "" },
+      ...allEmployeeIds.map((id) => ({ label: id, value: id }))
+    ];
+  }, [allEmployeeIds]);
+
+  // Build options for employee name dropdown
+  const employeeNameOptions = useMemo(() => {
+    return [
+      { label: "All", value: "" },
+      ...allEmployeeNames.map((name) => ({ label: name, value: name }))
+    ];
+  }, [allEmployeeNames]);
+
+  // Build options for is_paid dropdown
+  const isPaidOptions = [
+    { label: "All", value: "" },
+    { label: "Paid", value: "true" },
+    { label: "Not Paid", value: "false" }
+  ];
 
 
 const columns = [
@@ -44,6 +177,10 @@ const columns = [
 {
   header: "Employee Name",
   field: "employee_name"
+},
+{
+  header: "Designation Name",
+  field: "designation_name"
 },
 
 {
@@ -97,12 +234,10 @@ const columns = [
 },
 {
   header: "Action",
-  headerStyle: { textAlign: 'center' }, // Centers header text
   body: (row) => (
     <div className="d-flex justify-content-center align-items-center">
       <button
-        className="p-2 border rounded text-primary"
-        style={{ background: "transparent" }}
+        className="p-2 border rounded "
         onClick={() => navigate(`/salary/monthly/edit/${row.id}`)}
       >
         <i className="feather icon-edit"></i>
@@ -208,23 +343,93 @@ const totalRecords = monthlySalaryEntries?.count || 0;
         </div>
         
         <div className="card table-list-card employee-table">
-          <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3 ">
-            <div className="search-set"></div>
-            <div className="d-flex table-dropdown my-xl-auto right-content align-items-center flex-wrap row-gap-3">
-              {/* Filter Dropdowns */}
-              <div className="dropdown me-2">
-                <Link
-                  to="#"
-                  className="dropdown-toggle btn btn-white btn-md d-inline-flex align-items-center"
-                  data-bs-toggle="dropdown">
-                  Select Employees
-                </Link>
-                <ul className="dropdown-menu dropdown-menu-end p-3">
-                  <li><Link to="#" className="dropdown-item rounded-1">Anthony Lewis</Link></li>
-                  <li><Link to="#" className="dropdown-item rounded-1">Brian Villalobos</Link></li>
-                </ul>
+          <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
+            {/* Filter inputs row */}
+            <div className="d-flex table-dropdown my-xl-auto right-content align-items-center flex-wrap gap-2">
+              {/* Is Paid dropdown */}
+              <div style={{ width: "170px" }}>
+                <CommonSelect
+                  className="w-100"
+                  options={isPaidOptions}
+                  value={filters.is_paid}
+                  onChange={(e) => handleFilterChange("is_paid", e.value)}
+                  placeholder="Is Paid"
+                  filter={true}
+                />
               </div>
-              {/* ... Other dropdowns remain same ... */}
+
+              {/* Employee ID dropdown */}
+              <div style={{ width: "170px" }}>
+                <CommonSelect
+                  className="w-100"
+                  options={employeeIdOptions}
+                  value={filters.employee_id}
+                  onChange={(e) => handleFilterChange("employee_id", e.value)}
+                  placeholder={loadingEmployeeIds ? "Loading..." : "Employee ID"}
+                  filter={true}
+                  disabled={loadingEmployeeIds}
+                />
+              </div>
+
+              {/* Employee Name dropdown */}
+              <div style={{ width: "170px" }}>
+                <CommonSelect
+                  className="w-100"
+                  options={employeeNameOptions}
+                  value={filters.employee_name}
+                  onChange={(e) => handleFilterChange("employee_name", e.value)}
+                  placeholder={loadingEmployeeNames ? "Loading..." : "Employee Name"}
+                  filter={true}
+                  disabled={loadingEmployeeNames}
+                />
+              </div>
+
+              {/* Designation dropdown */}
+              <div style={{ width: "170px" }}>
+                <CommonSelect
+                  className="w-100"
+                  options={designationOptions}
+                  value={filters.designation_id}
+                  onChange={(e) => handleFilterChange("designation_id", e.value)}
+                  placeholder="Designation"
+                  filter={true}
+                />
+              </div>
+
+              {/* Date From picker */}
+              <div style={{ width: "170px" }}>
+                <div className="input-groupicon calender-input">
+                  <i className="feather icon-calendar info-img" />
+                  <CommonDatePicker
+                    value={filters.date_from ? new Date(filters.date_from) : null}
+                    onChange={(date) => handleDateChange("date_from", date)}
+                    placeholder="Date From"
+                    className="w-100"
+                  />
+                </div>
+              </div>
+
+              {/* Date To picker */}
+              <div style={{ width: "170px" }}>
+                <div className="input-groupicon calender-input">
+                  <i className="feather icon-calendar info-img" />
+                  <CommonDatePicker
+                    value={filters.date_to ? new Date(filters.date_to) : null}
+                    onChange={(date) => handleDateChange("date_to", date)}
+                    placeholder="Date To"
+                    className="w-100"
+                  />
+                </div>
+              </div>
+
+              {/* Clear filters button */}
+              <button
+                className="btn btn-sm btn-outline-secondary"
+                onClick={clearFilters}
+                title="Clear filters"
+              >
+                <i className="feather icon-x"></i>
+              </button>
             </div>
           </div>
           <div className="card-body pb-0">

@@ -402,9 +402,13 @@ const AddAdvancesalary = () => {
             </div>
             
             <div className="text-end mb-3">
-              <button type="button" className="btn btn-secondary me-2">
-                Cancel
-              </button>
+              <button
+  type="button"
+  className="btn btn-secondary me-2"
+  onClick={() => navigate(route.advancesalarylist)}
+>
+  Cancel
+</button>
               <button type="submit" className="btn btn-primary">
                 Add Advance
               </button>

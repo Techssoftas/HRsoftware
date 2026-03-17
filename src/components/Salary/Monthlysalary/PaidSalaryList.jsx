@@ -68,10 +68,6 @@ const PaidSalaryList = () => {
       field: "net_payable"
     },
     {
-      header: "Is Paid",
-      body: (row) => row.is_paid ? "Paid" : "Not Paid"
-    },
-    {
       header: "ESI Amount",
       field: "esi_amount"
     },
@@ -179,7 +175,7 @@ const PaidSalaryList = () => {
           <div className="card table-list-card employee-table">
             <div className="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3 ">
               <div className="search-set"></div>
-              <div className="d-flex table-dropdown my-xl-auto right-content align-items-center flex-wrap row-gap-3">
+              {/* <div className="d-flex table-dropdown my-xl-auto right-content align-items-center flex-wrap row-gap-3">
                 <div className="dropdown me-2">
                   <Link
                     to="#"
@@ -304,10 +300,10 @@ const PaidSalaryList = () => {
                     </li>
                   </ul>
                 </div>
-              </div>
+              </div> */}
             </div>
             <div className="card-body pb-0">
-              <div className="custom-datatable-filter table-responsive">
+              <div className="custom-datatable-filter table-responsive ">
                 <PrimeDataTable
                   column={columns}
                   data={dataSource}

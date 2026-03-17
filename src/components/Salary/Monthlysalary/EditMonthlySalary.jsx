@@ -3,10 +3,12 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { updateMonthlySalaryEntry, getMonthlySalaryById } from "../../../Redux/Salary/monthlysalarySlice";
 import AppAlert from "../../AppAlert";
-
+import RefreshIcon from "../../tooltip-content/refresh";
+import { all_routes } from "../../../routes/all_routes";
 const EditMonthlySalary = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const route = all_routes;
   const { id } = useParams();
   const { singleMonthlySalary, loading, error } = useSelector((state) => state.monthlySalary);
 
@@ -26,8 +28,8 @@ const EditMonthlySalary = () => {
   const [pfAmount, setPfAmount] = useState("");
   const [appAlert, setAppAlert] = useState({
     show: false,
-    type: "success",
-    message: "",
+    type: "",
+    message: ""
   });
 
   useEffect(() => {
@@ -63,23 +65,6 @@ const EditMonthlySalary = () => {
     };
     dispatch(updateMonthlySalaryEntry({ id, data }))
       .unwrap()
-      .then(() => {
-        setAppAlert({
-          show: true,
-          type: "success",
-          message: "Monthly Salary Updated Successfully",
-        });
-        setTimeout(() => {
-          navigate("/salary/monthly/list");
-        }, 2000);
-      })
-      .catch(() => {
-        setAppAlert({
-          show: true,
-          type: "danger",
-          message: "Update Failed",
-        });
-      });
   };
 
   return (
@@ -94,18 +79,18 @@ const EditMonthlySalary = () => {
               </div>
             </div>
             <ul className="table-top-head">
-              <li>
-                <Link to="/salary/monthly/list" className="btn btn-secondary">
-                  <i className="feather icon-arrow-left me-1"></i>
-                  Back to List
-                </Link>
-              </li>
-            </ul>
+              <RefreshIcon/>
+              </ul>
+              <div className="page-btn">
+              
+                 <Link to={route.monthlysalarylist} className="btn btn-secondary">
+                                <i className="feather icon-arrow-left me-2" />
+                                Back to List
+                              </Link>
+                              </div>
+            
           </div>
-          <div className="row">
-            <div className="col-lg-12">
-              <div className="card">
-                <div className="card-body">
+          
                   <form onSubmit={handleSubmit}>
                     <div className="accordions-items-seperate" id="accordionExample">
                       {/* Employee Information Accordion */}
@@ -134,7 +119,7 @@ const EditMonthlySalary = () => {
                           <div className="accordion-body border-top">
                             <div className="new-employee-field">
                               <div className="row">
-                                <div className="col-lg-4">
+                                <div className="col-lg-4 col-md-6">
                                   <div className="mb-3">
                                     <label className="form-label">Employee ID</label>
                                     <input
@@ -145,7 +130,7 @@ const EditMonthlySalary = () => {
                                     />
                                   </div>
                                 </div>
-                                <div className="col-lg-4">
+                                <div className="col-lg-4 col-md-6">
                                   <div className="mb-3">
                                     <label className="form-label">Employee Name</label>
                                     <input
@@ -156,7 +141,7 @@ const EditMonthlySalary = () => {
                                     />
                                   </div>
                                 </div>
-                                <div className="col-lg-4">
+                                <div className="col-lg-4 col-md-6">
                                   <div className="mb-3">
                                     <label className="form-label">Date</label>
                                     <input
@@ -199,7 +184,7 @@ const EditMonthlySalary = () => {
                           <div className="accordion-body border-top">
                             <div className="new-employee-field">
                               <div className="row">
-                                <div className="col-lg-3">
+                                <div className="col-lg-4 col-md-6">
                                   <div className="mb-3">
                                     <label className="form-label">Total Days</label>
                                     <input
@@ -210,7 +195,7 @@ const EditMonthlySalary = () => {
                                     />
                                   </div>
                                 </div>
-                                <div className="col-lg-3">
+                                <div className="col-lg-4 col-md-6">
                                   <div className="mb-3">
                                     <label className="form-label">Total Shifts Worked</label>
                                     <input
@@ -221,7 +206,7 @@ const EditMonthlySalary = () => {
                                     />
                                   </div>
                                 </div>
-                                <div className="col-lg-3">
+                                <div className="col-lg-4 col-md-6">
                                   <div className="mb-3">
                                     <label className="form-label">Total Hours Worked</label>
                                     <input
@@ -232,7 +217,7 @@ const EditMonthlySalary = () => {
                                     />
                                   </div>
                                 </div>
-                                <div className="col-lg-3">
+                                <div className="col-lg-4 col-md-6">
                                   <div className="mb-3">
                                     <label className="form-label">Advance Deducted</label>
                                     <input
@@ -243,7 +228,7 @@ const EditMonthlySalary = () => {
                                     />
                                   </div>
                                 </div>
-                                <div className="col-lg-3">
+                                <div className="col-lg-4 col-md-6">
                                   <div className="mb-3">
                                     <label className="form-label">Gross Salary</label>
                                     <input
@@ -254,7 +239,7 @@ const EditMonthlySalary = () => {
                                     />
                                   </div>
                                 </div>
-                                <div className="col-lg-3">
+                                <div className="col-lg-4 col-md-6">
                                   <div className="mb-3">
                                     <label className="form-label">ESI Amount</label>
                                     <input
@@ -265,7 +250,7 @@ const EditMonthlySalary = () => {
                                     />
                                   </div>
                                 </div>
-                                <div className="col-lg-3">
+                                <div className="col-lg-4 col-md-6">
                                   <div className="mb-3">
                                     <label className="form-label">PF Amount</label>
                                     <input
@@ -308,7 +293,7 @@ const EditMonthlySalary = () => {
                           <div className="accordion-body border-top">
                             <div className="new-employee-field">
                               <div className="row">
-                                <div className="col-lg-4">
+                                <div className="col-lg-4 col-md-6">
                                   <div className="mb-3">
                                     <label className="form-label">Base Salary</label>
                                     <input
@@ -319,7 +304,7 @@ const EditMonthlySalary = () => {
                                     />
                                   </div>
                                 </div>
-                                <div className="col-lg-4">
+                                <div className="col-lg-4 col-md-6">
                                   <div className="mb-3">
                                     <label className="form-label">Net Salary</label>
                                     <input
@@ -331,7 +316,7 @@ const EditMonthlySalary = () => {
                                     />
                                   </div>
                                 </div>
-                                <div className="col-lg-4">
+                                <div className="col-lg-4 col-md-6">
                                   <div className="mb-3">
                                     <label className="form-label">Is Paid</label>
                                     <div className="form-check form-switch">
@@ -354,31 +339,33 @@ const EditMonthlySalary = () => {
                       </div>
                     </div>
 
-                    <div className="d-flex justify-content-end mb-3">
-                      <button 
-                        type="button" 
-                        className="btn btn-secondary me-2" 
-                        onClick={() => navigate("/salary/monthly/list")}
-                      >
-                        Cancel
-                      </button>
-                      <button type="submit" className="btn btn-primary" disabled={loading}>
-                        {loading ? "Updating..." : "Update"}
-                      </button>
-                    </div>
+                    <div className="text-end mb-3">
+             <div className="text-end mb-3">
+              <button
+  type="button"
+  className="btn btn-secondary me-2"
+  onClick={() => navigate(route.monthlysalarylist)}
+>
+  Cancel
+</button>
+              <button type="submit" className="btn btn-primary">
+                Update Monthly Salary
+              </button>
+            </div>
+            </div>
                   </form>
                 </div>
+                <div className="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3">
+                          <p className="mb-0">2014 - 2025 © DreamsPOS. All Right Reserved</p>
+                          <p>
+                            Designed &amp; Developed by{" "}
+                            <Link to="#;" className="text-primary">
+                              Dreams
+                            </Link>
+                          </p>
+                        </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <AppAlert
-        show={appAlert.show}
-        type={appAlert.type}
-        message={appAlert.message}
-        onClose={() => setAppAlert({ ...appAlert, show: false })}
-      />
+            
     </>
   );
 };

@@ -327,38 +327,6 @@ useEffect(() => {
                             />
                           </div>
                         </div>
-
-                        {/* <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">
-                              Salary Type
-                              <span className="text-danger ms-1">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              name="salary_type"
-                              className="form-control"
-                              value={formData.salary_type}
-                              readOnly
-                            />
-                          </div>
-                        </div>
-
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">
-                              Base Salary (per hour)
-                              <span className="text-danger ms-1">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              name="base_salary"
-                              className="form-control"
-                              value={formData.base_salary}
-                              readOnly
-                            />
-                          </div>
-                        </div> */}
                       </div>
                     </div>
                   </div>
@@ -425,14 +393,21 @@ useEffect(() => {
             </div>
             
             <div className="text-end mb-3">
-              <button type="button" className="btn btn-secondary me-2">
-                Cancel
-              </button>
+              <div className="text-end mb-3">
+              <button
+  type="button"
+  className="btn btn-secondary me-2"
+  onClick={() => navigate(route.advancesalarylist)}
+>
+  Cancel
+</button>
               <button type="submit" className="btn btn-primary">
                 Update Advance
               </button>
             </div>
+            </div>
           </form>
+          
         </div>
         <div className="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3">
           <p className="mb-0">2014 - 2025 © DreamsPOS. All Right Reserved</p>

@@ -7,16 +7,19 @@ import Cookies from "js-cookie";
 // ---------------- GET DAILY SALARY LIST ----------------
 export const getDailySalaryEntries = createAsyncThunk(
   "dailySalary/getAll",
-  async ({ page = 1, rows = 10 } = {}, { rejectWithValue }) => {
+  async ({ page = 1, rows = 10, filters = {} } = {}, { rejectWithValue }) => {
     try {
 
       const token = Cookies.get("token") || Cookies.get("Token");
 
+      const params = {
+        page: page,
+        page_size: rows,
+        ...filters, // Spread filters object to include all filter parameters
+      };
+
       const res = await axios.get(`${baseURL}/hr/daily-salary-entries/`, {
-        params: {
-          page: page,
-          page_size: rows,
-        },
+        params: params,
         headers: { Authorization: `Token ${token}` },
       });   
 
@@ -135,6 +138,21 @@ export const deleteDailySalaryEntry = createAsyncThunk(
 );
 
 
+export const getDailySalaryById = createAsyncThunk(
+  "dailySalary/getById",
+  async (id, { rejectWithValue }) => {
+    try {
+      const token = Cookies.get("token") || Cookies.get("Token");
+      const res = await axios.get(`${baseURL}/hr/daily-salary-entries/${id}/`, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data || "Error fetching daily salary");
+    }
+  }
+);
+
 // ---------------- SLICE ----------------
 const dailySalarySlice = createSlice({
 
@@ -211,7 +229,11 @@ const dailySalarySlice = createSlice({
 
         state.dailySalaryEntries.count -= 1;
 
-      });
+      })
+
+      .addCase(getDailySalaryById.fulfilled, (state, action) => {
+  state.dailySalaryById = action.payload;
+});
 
   },
 
