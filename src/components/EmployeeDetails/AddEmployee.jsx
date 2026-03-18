@@ -549,45 +549,6 @@ useEffect(() => {
                           </div>
                         </div>
 
-                        
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">
-                              Contact Number
-                              <span className="text-danger ms-1">*</span>
-                            </label>
-                            <input
-                            type="number"
-                            name="contact_number"
-                            placeholder="Enter mobile number"
-                            className="form-control"
-                            onChange={handleChange}
-                            />
-                            {errors.contact_number && (
-  <small className="text-danger">{errors.contact_number}</small>
-)}
-                          </div>
-                        </div>
-                        
-                        <div className="col-lg-4 col-md-6">
-                          <div className="input-blocks">
-                            <label className="form-label">
-                              Date of Birth
-                              <span className="text-danger ms-1">*</span>
-                            </label>
-                            <div className="input-groupicon calender-input">
-                              <i className="feather icon-calendar info-img" />
-                              <CommonDatePicker
-                                value={date1}
-                                onChange={setDate1}
-                                
-                                className="w-100" />
-                              {errors.date_of_birth && (
-  <small className="text-danger">{errors.date_of_birth}</small>
-)}
-                            </div>
-                          </div>
-                        </div>
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">
@@ -611,6 +572,64 @@ useEffect(() => {
 )}
                           </div>
                         </div>
+
+                        <div className="col-lg-4 col-md-6">
+                          <div className="input-blocks">
+                            <label className="form-label">
+                              Date of Birth
+                              <span className="text-danger ms-1">*</span>
+                            </label>
+                            <div className="input-groupicon calender-input">
+                              <i className="feather icon-calendar info-img" />
+                              <CommonDatePicker
+                                value={date1}
+                                onChange={setDate1}
+                                
+                                className="w-100" />
+                              {errors.date_of_birth && (
+  <small className="text-danger">{errors.date_of_birth}</small>
+)}
+                            </div>
+                          </div>
+                        </div>
+
+                        
+                        <div className="col-lg-4 col-md-6">
+                          <div className="mb-3">
+                            <label className="form-label">
+                              Contact Number
+                              <span className="text-danger ms-1">*</span>
+                            </label>
+                            <input
+                            type="number"
+                            name="contact_number"
+                            placeholder="Enter mobile number"
+                            className="form-control"
+                            onChange={handleChange}
+                            />
+                            {errors.contact_number && (
+  <small className="text-danger">{errors.contact_number}</small>
+)}
+                          </div>
+                        </div>
+                        
+                        <div className="col-lg-4 col-md-6">
+                          <div className="mb-3">
+                            <label className="form-label">
+                              Blood Group
+                              <span className="text-danger ms-1">*</span>
+                            </label>
+                            <CommonSelect
+                              className="w-100"
+                              options={bloodgroup}
+                              value={selectedBloodGroup}
+                              onChange={(e) => setSelectedBloodGroup(e.value)}
+                              placeholder="Select Blood Group"
+                              filter={false} />
+                            
+                          </div>
+                        </div>
+                        
 
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
@@ -681,22 +700,7 @@ useEffect(() => {
                             
                           </div>
                         </div>
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">
-                              Blood Group
-                              <span className="text-danger ms-1">*</span>
-                            </label>
-                            <CommonSelect
-                              className="w-100"
-                              options={bloodgroup}
-                              value={selectedBloodGroup}
-                              onChange={(e) => setSelectedBloodGroup(e.value)}
-                              placeholder="Select Blood Group"
-                              filter={false} />
-                            
-                          </div>
-                        </div>
+                        
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">Aadhaar Number</label>

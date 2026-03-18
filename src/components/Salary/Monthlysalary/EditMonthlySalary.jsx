@@ -57,18 +57,65 @@ const EditMonthlySalary = () => {
     }
   }, [singleMonthlySalary]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const data = {
-      is_paid: isPaid,
-      net_payable: parseFloat(netSalary),
-    };
-    dispatch(updateMonthlySalaryEntry({ id, data }))
-      .unwrap()
+const handleSubmit = (e) => {
+  e.preventDefault();
+
+  // ✅ Convert values
+  const gross = parseFloat(readOnlyGrossSalary) || 0;
+  const advance = parseFloat(advanceDeducted) || 0;
+  const enteredNet = parseFloat(netSalary) || 0;
+
+  const expectedNet = gross - advance;
+
+  // ❌ Validation
+  if (enteredNet > expectedNet) {
+    setAppAlert({
+      show: true,
+      type: "danger",
+      message: `Net Salary cannot exceed ${expectedNet}`
+    });
+    return;
+  }
+
+  // ✅ Proceed if valid
+  const data = {
+    is_paid: isPaid,
+    net_payable: enteredNet,
   };
 
+  dispatch(updateMonthlySalaryEntry({ id, data }))
+    .unwrap()
+    .then(() => {
+      setAppAlert({
+        show: true,
+        type: "success",
+        message: "Monthly Salary Updated Successfully!"
+      });
+
+      setTimeout(() => {
+        navigate(route.monthlysalarylist);
+      }, 1500);
+    })
+    .catch(() => {
+      setAppAlert({
+        show: true,
+        type: "danger",
+        message: "Failed to update monthly salary"
+      });
+    });
+};
+
   return (
-    <>
+    
+    <div>
+      {appAlert.show && (
+  <AppAlert
+    type={appAlert.type}
+    message={appAlert.message}
+    onClose={() => setAppAlert({ ...appAlert, show: false })}
+  />
+)}
+    
       <div className="page-wrapper">
         <div className="content">
           <div className="page-header">
@@ -366,7 +413,8 @@ const EditMonthlySalary = () => {
                         </div>
               </div>
             
-    </>
+    </div>
+    
   );
 };
 

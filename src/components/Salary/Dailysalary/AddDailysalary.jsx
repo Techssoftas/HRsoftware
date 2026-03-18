@@ -71,8 +71,13 @@ const AddDailysalary = () => {
     } else {
       const shiftHours = parseFloat(formData.standard_hours) || 0;
       const otHours = parseFloat(selectedOT) || 0;
+      // Only shift hours
+setTotalHoursDecimal(shiftHours);
+
+// If you need total separately
+
       const totalDecimal = shiftHours + otHours;
-      setTotalHoursDecimal(totalDecimal);
+      // setTotalHoursDecimal(totalDecimal);
 
       const hours = Math.floor(totalDecimal);
       const minutes = Math.round((totalDecimal - hours) * 60);
@@ -169,13 +174,17 @@ const AddDailysalary = () => {
   }
 
   // ✅ Payload
+  const shiftHours = parseFloat(formData.standard_hours) || 0;
+  const otHours = parseFloat(selectedOT) || 0;
+  const totalHours = isMonthly ? 0 : shiftHours + otHours;
+  
   const payload = {
     employee: selectedEmployeeId,
     date: formatDateForPayload(date),
-    worked_hours: totalHoursDecimal,
+    worked_hours: isMonthly ? 0 : shiftHours,
     shift_value: isMonthly ? 0 : parseFloat(selectedShift) || 0,
-    ot_hours: isMonthly ? 0 : parseFloat(selectedOT) || 0,
-    total_hours: totalHoursDecimal,
+    ot_hours: isMonthly ? 0 : otHours,
+    total_hours: totalHours,
     amount_earned: totalDaySalary.toFixed(2),
   };
 
@@ -193,18 +202,15 @@ const AddDailysalary = () => {
       }, 1500);
     })
     .catch((error) => {
-  let errorMessage = "Error adding salary";
 
-  // ✅ Handle duplicate (employee + date already exists)
-  if (error?.non_field_errors?.length > 0) {
-    errorMessage = `Salary already added for ${formData.employee_name} on ${formatDateForPayload(date)}`;
-  }
-
+  let errorMessage = "Salary already added for this employee on this date.";
+  
   setAppAlert({
     type: "danger",
     message: errorMessage,
     show: true
   });
+
 });
 };
 

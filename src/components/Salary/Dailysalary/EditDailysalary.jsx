@@ -111,8 +111,12 @@ const EditDailysalary = () => {
         .then((entry) => {
           // Populate local state from the fetched entry
           setSelectedEmployeeId(entry.employee);
-          setSelectedShift(entry.shift_value);
-          setSelectedOT(entry.ot_hours);
+          // Normalize shift value: "0.50" → "0.5", "1.0" → "1"
+          const normalizedShift = parseFloat(entry.shift_value).toString();
+          setSelectedShift(normalizedShift);
+          // Normalize OT value: "3.0" → "3", "3.5" → "3.5"
+          const normalizedOT = parseFloat(entry.ot_hours).toString();
+          setSelectedOT(normalizedOT);
           setDate(new Date(entry.date));
           setTotalHours(entry.total_hours);
           setTotalDaySalary(parseFloat(entry.amount_earned));
@@ -243,11 +247,15 @@ const EditDailysalary = () => {
     }
 
     // Prepare payload – only updatable fields (employee and date stay the same)
+    const shiftHours = parseFloat(formData.standard_hours) || 0;
+    const otHours = parseFloat(selectedOT) || 0;
+    const totalHours = isMonthly ? 0 : shiftHours + otHours;
+    
     const payload = {
       shift_value: isMonthly ? 0 : parseFloat(selectedShift) || 0,
-      ot_hours: isMonthly ? 0 : parseFloat(selectedOT) || 0,
-      worked_hours: isMonthly ? 0 : parseFloat(formData.standard_hours) || 0,
-      total_hours: isMonthly ? 0 : totalHoursDecimal,
+      ot_hours: isMonthly ? 0 : otHours,
+      worked_hours: isMonthly ? 0 : shiftHours,
+      total_hours: totalHours,
       amount_earned: totalDaySalary.toFixed(2),
     };
 

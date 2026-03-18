@@ -32,6 +32,7 @@ const Add = ({ editData, setEditData }) => {
 
   const handleSubmit = async () => {
 
+
     if (!shiftValue) {
       setAppAlert({
         type: "danger",
@@ -40,6 +41,27 @@ const Add = ({ editData, setEditData }) => {
       });
       return;
     }
+
+    const hoursValue = parseInt(standardHours);
+
+if (!standardHours || isNaN(hoursValue)) {
+  setAppAlert({
+    type: "danger",
+    message: "Standard hours must be a valid number",
+    show: true
+  });
+  return;
+}
+
+// ❌ Zero or negative not allowed
+if (hoursValue <= 0) {
+  setAppAlert({
+    type: "danger",
+    message: "Standard hours must be greater than 0",
+    show: true
+  });
+  return;
+}
 
     const payload = {
       shift_value: shiftValue,
@@ -88,15 +110,34 @@ const Add = ({ editData, setEditData }) => {
       document.getElementById("closeShiftModal")?.click();
       setEditData(null);
 
-    } catch (err) {
+    } 
+   catch (err) {
 
-      setAppAlert({
-        type: "danger",
-        message: "Error saving shift",
-        show: true
-      });
+  let errorMessage = "Error saving shift";
 
-    }
+  // ✅ Shift duplicate error
+  if (err?.shift_value?.length) {
+    errorMessage = err.shift_value[0];
+  } 
+  else if (err?.response?.data?.shift_value?.length) {
+    errorMessage = err.response.data.shift_value[0];
+  }
+
+  // ✅ Standard hours error
+  else if (err?.standard_hours?.length) {
+    errorMessage = err.standard_hours[0];
+  } 
+  else if (err?.response?.data?.standard_hours?.length) {
+    errorMessage = err.response.data.standard_hours[0];
+  }
+
+  setAppAlert({
+    type: "danger",
+    message: errorMessage,
+    show: true
+  });
+
+}
 
   };
 

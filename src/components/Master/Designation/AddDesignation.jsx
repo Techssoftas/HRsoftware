@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { createDesignation, updateDesignation } from "../../../Redux/Master/designationSlice";
 import AppAlert from "../../AppAlert";
@@ -10,13 +10,62 @@ const DesignationAdd = ({ editData, setEditData }) => {
   const [name, setName] = useState("");
   const [salaryType, setSalaryType] = useState("");
   const [baseSalary, setBaseSalary] = useState("");
+  const [displaySalary, setDisplaySalary] = useState("");
   const [isActive, setIsActive] = useState(true);
-
+  
   const [appAlert, setAppAlert] = useState({
     type: "",
     message: "",
     show: false
   });
+
+  const formatCurrency = (value) => {
+  if (!value) return "";
+
+  const number = parseFloat(value);
+  if (isNaN(number)) return "";
+
+  return number.toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};
+
+const resetForm = () => {
+  setName("");
+  setSalaryType("");
+  setBaseSalary("");
+  setDisplaySalary("");
+  setIsActive(true);
+  setEditData(null);
+};
+
+useEffect(() => {
+  const modal = document.getElementById("designations-modal");
+
+  const handleOpen = () => {
+    if (!editData) {
+      resetForm();
+    }
+  };
+
+  modal?.addEventListener("show.bs.modal", handleOpen);
+
+  return () => {
+    modal?.removeEventListener("show.bs.modal", handleOpen);
+  };
+}, [editData]);
+
+
+useEffect(() => {
+  if (editData) {
+    setBaseSalary(editData.base_salary || "");
+    setDisplaySalary(formatCurrency(editData.base_salary));
+  } else {
+    setBaseSalary("");
+    setDisplaySalary("");
+  }
+}, [editData]);
 
   // LOAD EDIT DATA
   useEffect(() => {
@@ -57,6 +106,36 @@ const DesignationAdd = ({ editData, setEditData }) => {
       });
       return;
     }
+
+    const salaryValue = parseFloat(baseSalary);
+
+// ❌ Empty / Invalid (like +, -, *, abc)
+if (!baseSalary || isNaN(salaryValue)) {
+  setAppAlert({
+    type: "danger",
+    message: "Base salary must be a valid number",
+    show: true
+  });
+  return;
+}
+
+// ❌ Zero or negative
+if (salaryValue <= 0) {
+  setAppAlert({
+    type: "danger",
+    message: "Base salary must be greater than 0",
+    show: true
+  });
+  return;
+}
+if (!/^\d+(\.\d{1,2})?$/.test(baseSalary)) {
+  setAppAlert({
+    type: "danger",
+    message: "Only 2 decimal values allowed",
+    show: true
+  });
+  return;
+}
 
     const payload = {
       name: name,
@@ -111,7 +190,7 @@ const DesignationAdd = ({ editData, setEditData }) => {
 
       setAppAlert({
         type: "danger",
-        message: "Error saving designation",
+        message: "Designation name already exist",
         show: true
       });
 
@@ -155,7 +234,12 @@ const DesignationAdd = ({ editData, setEditData }) => {
                 type="text"
                 className="form-control mb-3"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+    const value = e.target.value;
+    const capitalizedValue =
+      value.charAt(0).toUpperCase() + value.slice(1);
+    setName(capitalizedValue);
+  }}
                 placeholder="Enter designation name"
               />
 
@@ -173,13 +257,30 @@ const DesignationAdd = ({ editData, setEditData }) => {
 
               {/* BASE SALARY */}
               <label className="form-label">Base Salary (Per Hour)</label>
-              <input
-                type="number"
-                className="form-control mb-3"
-                value={baseSalary}
-                onChange={(e) => setBaseSalary(e.target.value)}
-                placeholder="Enter salary"
-              />
+
+<div className="input-group mb-3">
+  
+
+  <input
+  type="text"
+  className="form-control mb-3"
+  value={displaySalary}
+  onChange={(e) => {
+    let value = e.target.value.replace(/,/g, "");
+
+    if (/^\d*\.?\d*$/.test(value)) {
+      setBaseSalary(value);
+      setDisplaySalary(value);
+    }
+  }}
+  onBlur={() => {
+    if (baseSalary) {
+      setDisplaySalary(formatCurrency(baseSalary));
+    }
+  }}
+  placeholder="Enter per hour salary"
+/>
+</div>
 
               {/* ACTIVE */}
               <div className="form-check mb-3">

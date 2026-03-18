@@ -290,12 +290,12 @@ const Header = () => {
       {
         name: "Designation",
         path: "/master/designation/list",
-        icon: <i className="ti ti-id-badge fs-16 me-2"></i>,
+        icon: <i className="ti ti-briefcase fs-16 me-2"></i>,
       },
       {
         name: "Shift",
         path: "/master/shift/list",
-        icon: <i className="ti ti-users-group fs-16 me-2"></i>,
+        icon: <i className="ti ti-clock fs-16 me-2"></i>,
       },
     ],
     
@@ -303,22 +303,22 @@ const Header = () => {
       {
         name: "Daily Salary",
         path: "/salary/daily/list",
-        icon: <i className="ti ti-chart-bar fs-16 me-2"></i>,
+        icon: <i className="ti ti-calendar-dollar fs-16 me-2"></i>,
       },
       {
         name: "Monthly Salary",
         path: "/salary/monthly/list",
-        icon: <i className="ti ti-shopping-bag fs-16 me-2"></i>,
+        icon: <i className="ti ti-wallet fs-16 me-2"></i>,
       },
       {
         name: "Advance",
         path: "/salary/advance/list",
-        icon: <i className="ti ti-package fs-16 me-2"></i>,
+        icon: <i className="ti ti-cash fs-16 me-2"></i>,
       },
       {
         name: "Paid Salary",
         path: "/salary/paid/list",
-        icon: <i className="ti ti-package fs-16 me-2"></i>,
+        icon: <i className="ti ti-checks fs-16 me-2"></i>,
       },
       
     ],
@@ -415,7 +415,7 @@ const Header = () => {
       gap: "4px",
     }}
   >
-    <i className="ti ti-layout-grid fs-16 me-1"></i>
+    <i className="ti ti-currency-rupee fs-16 me-1"></i>
     <span>SALARY</span>
     <i
       className={`ti ti-chevron-${activeMenu === "salary" ? "down" : "up"} fs-12`}

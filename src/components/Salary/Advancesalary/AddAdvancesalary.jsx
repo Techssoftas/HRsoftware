@@ -34,6 +34,12 @@ const AddAdvancesalary = () => {
   const [totalHoursDecimal, setTotalHoursDecimal] = useState(0);
   const [totalDaySalary, setTotalDaySalary] = useState(0);
 
+  const [appAlert, setAppAlert] = useState({
+  show: false,
+  type: "",
+  message: ""
+});
+
   const employeeOptions =
     employees?.results?.map((emp) => ({
       label: emp.employee_id,
@@ -157,22 +163,49 @@ const AddAdvancesalary = () => {
   }, [calculateTotal]);
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const payload = {
-      employee: selectedEmployeeId,
-      date_given: formatDate(date),
-      amount: parseFloat(formData.amount) || 0,
-    };
+  const formattedDate = formatDate(date);
 
-    dispatch(createAdvanceSalary(payload))
-      .unwrap()
-      .then(() => {
-        setTimeout(() => {
-          navigate(route.advancesalarylist);
-        }, 1500);
-      });
+  const payload = {
+    employee: selectedEmployeeId,
+    date_given: formattedDate,
+    amount: parseFloat(formData.amount) || 0,
   };
+
+  dispatch(createAdvanceSalary(payload))
+    .unwrap()
+    .then(() => {
+      // ✅ Success Alert
+      setAppAlert({
+        show: true,
+        type: "success",
+        message: "Advance Salary Created Successfully!"
+      });
+
+      // ⏳ Redirect
+      setTimeout(() => {
+        navigate(route.advancesalarylist);
+      }, 1500);
+    })
+    .catch((err) => {
+      // ❌ Duplicate or error
+      let errorMsg = "Something went wrong";
+
+      // 🔥 If backend sends duplicate error
+      if (err?.response?.data?.message) {
+        errorMsg = err.response.data.message;
+      } else {
+        errorMsg = "Advance already exists for this employee on this date";
+      }
+
+      setAppAlert({
+        show: true,
+        type: "danger",
+        message: errorMsg
+      });
+    });
+};
 
   useEffect(() => {
     dispatch(getEmployees({ page: 1, rows: 100 }));
@@ -209,6 +242,13 @@ const AddAdvancesalary = () => {
 
   return (
     <div>
+      {appAlert.show && (
+  <AppAlert
+    type={appAlert.type}
+    message={appAlert.message}
+    onClose={() => setAppAlert({ ...appAlert, show: false })}
+  />
+)}
       <div className="page-wrapper" id="employee-modal">
         <div className="content">
           <div className="page-header">

@@ -353,7 +353,7 @@ const totalRecords = monthlySalaryEntries?.count || 0;
                   options={isPaidOptions}
                   value={filters.is_paid}
                   onChange={(e) => handleFilterChange("is_paid", e.value)}
-                  placeholder="All"
+                  placeholder="paid & unpaid"
                   filter={true}
                 />
               </div>

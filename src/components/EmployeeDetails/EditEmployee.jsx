@@ -603,27 +603,26 @@ const EditEmployee = () => {
                           </div>
                         </div>
 
-                        {/* Contact Number */}
-                        <div className="col-lg-4 col-md-6">
+                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">
-                              Contact Number
+                              Gender
                               <span className="text-danger ms-1">*</span>
                             </label>
-                            <input
-                              type="text"
-                              name="contact_number"
-                              value={formData.contact_number}
-                              className="form-control"
-                              onChange={handleChange}
+                            <CommonSelect
+                              className="w-100"
+                              options={gender}
+                              value={selectedGender}
+                              onChange={(e) => {
+                                setSelectedGender(e.value);
+                                setFormData((prev) => ({ ...prev, gender: e.value }));
+                              }}
+                              placeholder="Select Gender"
+                              filter={false}
                             />
-                            {errors.contact_number && (
-                              <small className="text-danger">{errors.contact_number}</small>
-                            )}
                           </div>
                         </div>
 
-                        {/* Date of Birth */}
                         <div className="col-lg-4 col-md-6">
                           <div className="input-blocks">
                             <label className="form-label">
@@ -644,26 +643,47 @@ const EditEmployee = () => {
                           </div>
                         </div>
 
-                        {/* Gender */}
+                        {/* Contact Number */}
                         <div className="col-lg-4 col-md-6">
                           <div className="mb-3">
                             <label className="form-label">
-                              Gender
+                              Contact Number
+                              <span className="text-danger ms-1">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              name="contact_number"
+                              value={formData.contact_number}
+                              className="form-control"
+                              onChange={handleChange}
+                            />
+                            {errors.contact_number && (
+                              <small className="text-danger">{errors.contact_number}</small>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Blood Group */}
+                        <div className="col-lg-4 col-md-6">
+                          <div className="mb-3">
+                            <label className="form-label">
+                              Blood Group
                               <span className="text-danger ms-1">*</span>
                             </label>
                             <CommonSelect
                               className="w-100"
-                              options={gender}
-                              value={selectedGender}
-                              onChange={(e) => {
-                                setSelectedGender(e.value);
-                                setFormData((prev) => ({ ...prev, gender: e.value }));
-                              }}
-                              placeholder="Select Gender"
+                              options={bloodgroup}
+                              value={selectedBloodGroup}
+                              onChange={(e) => setSelectedBloodGroup(e.value)}
+                              placeholder="Select Blood Group"
                               filter={false}
                             />
                           </div>
                         </div>
+                        
+
+                        {/* Gender */}
+                       
 
                         {/* Education */}
                         <div className="col-lg-4 col-md-6">
@@ -738,23 +758,7 @@ const EditEmployee = () => {
                           </div>
                         </div>
 
-                        {/* Blood Group */}
-                        <div className="col-lg-4 col-md-6">
-                          <div className="mb-3">
-                            <label className="form-label">
-                              Blood Group
-                              <span className="text-danger ms-1">*</span>
-                            </label>
-                            <CommonSelect
-                              className="w-100"
-                              options={bloodgroup}
-                              value={selectedBloodGroup}
-                              onChange={(e) => setSelectedBloodGroup(e.value)}
-                              placeholder="Select Blood Group"
-                              filter={false}
-                            />
-                          </div>
-                        </div>
+                        
 
                         {/* Aadhaar Number (text) */}
                         <div className="col-lg-4 col-md-6">

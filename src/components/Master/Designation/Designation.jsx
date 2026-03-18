@@ -100,7 +100,7 @@ const List = () => {
                 onClick={() => setEditData(null)}
               >
                 <i className="ti ti-circle-plus me-1"></i>
-                Create designation
+                Create Designation
               </button>
             </div>
           </div>
