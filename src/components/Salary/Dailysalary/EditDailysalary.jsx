@@ -5,7 +5,7 @@ import {
   updateDailySalaryEntry,
   getDailySalaryById,          // <-- make sure this thunk exists in your slice
 } from "../../../Redux/Salary/dailysalarySlice";
-import { getEmployeeByEmployeeId } from "../../../Redux/Employe/employeeSlice";
+import { getEmployeeById } from "../../../Redux/Employe/employeeSlice";
 import { getShiftByValue, getShifts } from "../../../Redux/Master/shiftSlice";
 import { getEmployees } from "../../../Redux/Employe/employeeSlice";
 import AppAlert from "../../AppAlert";
@@ -122,11 +122,14 @@ const EditDailysalary = () => {
             ...prev,
             employee_name: entry.employee_name,
             employee_id: entry.employee_id_display,
+            designation_name: entry.designation_name,
+            salary_type: entry.salary_type,
+            base_salary: entry.base_salary,
           }));
 
           // Fetch employee details to get base salary, salary type, designation
           if (entry.employee) {
-            dispatch(getEmployeeByEmployeeId(entry.employee));
+            dispatch(getEmployeeById(entry.employee));
           }
 
           // If shift exists, fetch its details to populate standard_hours

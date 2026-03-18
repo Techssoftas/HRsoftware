@@ -113,13 +113,18 @@ console.log(dataSource)
               </div>
             </li>
             <TooltipIcons />
+            </ul>
+            <div className="d-flex align-items-center gap-3">
+              <ul className="table-top-head mb-0">
             <RefreshIcon />
             {/* <CollapesIcon /> */}
           </ul>
+          
           <Link to={all_routes.advancesalaryadd} className="btn btn-primary">
   <i className="ti ti-circle-plus me-1"></i>
   Add Advance Salary
 </Link>
+</div>
         </div>
         <div className="row">
           <div className="col-xl-3 col-md-6">

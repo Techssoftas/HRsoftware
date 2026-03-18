@@ -1,3 +1,5 @@
+import AddDailysalary from "../components/Salary/Dailysalary/AddDailysalary";
+
 export const all_routes = {
   newdashboard: "/index",
   dashboard: "/admin-dashboard",
@@ -232,6 +234,7 @@ export const all_routes = {
   successThree: "/success-3",
   employeelist: "/employee/list",
   dailysalarysist: "/salary/daily/list",
+  addDailysalary: "/salary/daily/add",
   advancesalarylist: "/salary/advance/list",
   advancesalaryadd: "/salary/advance/add",
   addcertificate: "/maintanance/add",

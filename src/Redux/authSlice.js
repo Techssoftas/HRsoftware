@@ -9,7 +9,7 @@ export const loginUser = createAsyncThunk(
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await axios.post(
-        `${baseURL}/accounts/login/`,
+        `${baseURL}/master/login/`,
         credentials,
         { withCredentials: true }
       );

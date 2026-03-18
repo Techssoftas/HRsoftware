@@ -29,7 +29,7 @@ const MonthlySalaryList = () => {
 
   // FILTERS
   const [filters, setFilters] = useState({
-    is_paid: "",
+    is_paid: null,
     employee_id: "",
     employee_name: "",
     designation_id: "",
@@ -156,7 +156,7 @@ const MonthlySalaryList = () => {
 
   // Build options for is_paid dropdown
   const isPaidOptions = [
-    { label: "All", value: "" },
+    { label: "All", value: null },
     { label: "Paid", value: "true" },
     { label: "Not Paid", value: "false" }
   ];
@@ -353,7 +353,7 @@ const totalRecords = monthlySalaryEntries?.count || 0;
                   options={isPaidOptions}
                   value={filters.is_paid}
                   onChange={(e) => handleFilterChange("is_paid", e.value)}
-                  placeholder="Is Paid"
+                  placeholder="All"
                   filter={true}
                 />
               </div>
