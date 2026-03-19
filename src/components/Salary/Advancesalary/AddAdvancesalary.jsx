@@ -165,45 +165,44 @@ const AddAdvancesalary = () => {
   const handleSubmit = (e) => {
   e.preventDefault();
 
-  const formattedDate = formatDate(date);
-
   const payload = {
     employee: selectedEmployeeId,
-    date_given: formattedDate,
+    date_given: formatDate(date),
     amount: parseFloat(formData.amount) || 0,
   };
 
   dispatch(createAdvanceSalary(payload))
     .unwrap()
     .then(() => {
-      // ✅ Success Alert
+      // Success: show success alert and navigate
       setAppAlert({
         show: true,
         type: "success",
-        message: "Advance Salary Created Successfully!"
+        message: "Advance salary added successfully!",
       });
-
-      // ⏳ Redirect
       setTimeout(() => {
         navigate(route.advancesalarylist);
       }, 1500);
     })
-    .catch((err) => {
-      // ❌ Duplicate or error
-      let errorMsg = "Something went wrong";
-
-      // 🔥 If backend sends duplicate error
-      if (err?.response?.data?.message) {
-        errorMsg = err.response.data.message;
+    .catch((error) => {
+      // Check if backend returned the duplicate date error
+      if (
+        error?.detail?.length > 0 &&
+        error.detail[0].includes("An advance for this employee on this date already exists")
+      ) {
+        setAppAlert({
+          show: true,
+          type: "danger",
+          message: error.detail[0],
+        });
       } else {
-        errorMsg = "Advance already exists for this employee on this date";
+        // Generic error
+        setAppAlert({
+          show: true,
+          type: "danger",
+          message: "Something went wrong. Please try again.",
+        });
       }
-
-      setAppAlert({
-        show: true,
-        type: "danger",
-        message: errorMsg
-      });
     });
 };
 
